@@ -71,9 +71,9 @@ A sample configuration file is below.
 		}
 	}
 
-Note the important settings are: **bt2idx**, **genome_sequence**, 
-section **input/output**, and within this section **fastq_directory**, **workdir**, **fastq_sequence_length**,
-**organism_build**, and **email** within **cluster** section.
+Note the important settings above are: **bt2idx** (line 17); **genome_sequence** (line 18);
+section **input/output**: **fastq_directory** (line 22), **workdir** (line 23), **fastq_sequence_length** (line 24),
+**organism_build** (line 25); section **cluster**: **email** (line 35).
 
 `fastq_directory` is the directory containing paired-end CUT&RUN sequences (with _R1_001.fastq.gz and _R2_001.fastq.gz suffix). `organism_build` is one of supported genome assemblies: hg38, hg19, mm10, and mm9. `adapterpath` contains Illumina Truseq3-PE adapter sequences (we provide them). `genome_sequence` is the whole-genome **masked** sequence which matches with the appropriate organism build.
 
@@ -111,7 +111,7 @@ sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowP
 ```
 By default, CutRunTools keeps duplicate fragments. If instead users wish to use deduplicate version, 
 ```
-cd ../<b>macs2.narrow.aug18.dedup</b>
+cd ../macs2.narrow.aug18.dedup
 sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
 ```
 
