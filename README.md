@@ -71,11 +71,14 @@ A sample configuration file is below.
 		}
 	}
 
-Note the important settings above are: **bt2idx** (line 17); **genome_sequence** (line 18);
+Note the important settings above are: **adapterpath** (line 8), **bt2idx** (line 17); **genome_sequence** (line 18);
 section **input/output**: **fastq_directory** (line 22), **workdir** (line 23), **fastq_sequence_length** (line 24),
 **organism_build** (line 25); section **cluster**: **email** (line 35).
 
-`fastq_directory` is the directory containing paired-end CUT&RUN sequences (with _R1_001.fastq.gz and _R2_001.fastq.gz suffix). `organism_build` is one of supported genome assemblies: hg38, hg19, mm10, and mm9. `adapterpath` contains Illumina Truseq3-PE adapter sequences (we provide them). `genome_sequence` is the whole-genome **masked** sequence which matches with the appropriate organism build.
+    * `fastq_directory` is the directory containing paired-end CUT&RUN sequences (with _R1_001.fastq.gz and _R2_001.fastq.gz suffix). 
+    * `organism_build` is one of supported genome assemblies: hg38, hg19, mm10, and mm9. 
+    * `adapterpath` contains Illumina Truseq3-PE adapter sequences (we provide them). 
+    * `genome_sequence` is the whole-genome **masked** sequence which matches with the appropriate organism build.
 
 ### Create job submission scripts
 ```
