@@ -11,8 +11,8 @@ Once the package is installed, please see USAGE.md to use it (but basic usage is
 ## Basic Usage
 
 CutRunTools requires a JSON configuration file which specifies all that is needed to run an analysis. 
-A sample configuration file is below. Note the important settings in bold.
-<pre><code>
+A sample configuration file is below. 
+
 	{
 		"Rscriptbin": "/n/app/R/3.3.3/bin",
 		"pythonbin": "/n/app/python/2.7.12/bin",
@@ -29,15 +29,15 @@ A sample configuration file is below. Note the important settings in bold.
 		"bedopsbin": "/home/qz64/bin",
 		"bedtoolsbin": "/n/app/bedtools/2.26.0/bin",
 		"makecutmatrixbin": "/home/qz64/.local/bin",
-		<b>"bt2idx"</b>: "/n/groups/shared_databases/bowtie2_indexes",
-		<b>"genome_sequence"</b>: "/home/qz64/chrom.hg19/hg19.fa",
+		"bt2idx": "/n/groups/shared_databases/bowtie2_indexes",
+		"genome_sequence": "/home/qz64/chrom.hg19/hg19.fa",
 		"extratoolsbin": "/home/qz64",
 		"extrasettings": "/home/qz64",
-		<b>"input/output"</b>: {
-			<b>"fastq_directory"</b>: "/n/scratch2/qz64/Nan_18_aug23/Nan_run_19",
-			<b>"workdir"</b>: "/n/scratch2/qz64/workdir",
-			<b>"fastq_sequence_length"</b>: 40,
-			<b>"organism_build"</b>: "hg19"
+		"input/output": {
+			"fastq_directory": "/n/scratch2/qz64/Nan_18_aug23/Nan_run_19",
+			"workdir": "/n/scratch2/qz64/workdir",
+			"fastq_sequence_length": 40,
+			"organism_build": "hg19"
 		},
 		"motif_finding": {
 			"num_bp_from_summit": 150,
@@ -46,8 +46,8 @@ A sample configuration file is below. Note the important settings in bold.
 			"motif_scanning_pval": 0.0005,
 			"num_motifs": 20
 		},
-		<b>"cluster"</b>: {
-			<b>"email"</b>: "bernardzhu@gmail.com",
+		"cluster": {
+			"email": "bernardzhu@gmail.com",
 			"step_alignment": {
 				"queue": "short",
 				"memory": 32000,
@@ -70,7 +70,10 @@ A sample configuration file is below. Note the important settings in bold.
 			}
 		}
 	}
-</code></pre>
+
+Note the important settings are: **bt2idx**, **genome_sequence**, 
+section **input/output**, and within this section **fastq_directory**, **workdir**, **fastq_sequence_length**,
+**organism_build**, and **email** within **cluster** section.
 
 `fastq_directory` is the directory containing paired-end CUT&RUN sequences (with _R1_001.fastq.gz and _R2_001.fastq.gz suffix). `organism_build` is one of supported genome assemblies: hg38, hg19, mm10, and mm9. `adapterpath` contains Illumina Truseq3-PE adapter sequences (we provide them). `genome_sequence` is the whole-genome **masked** sequence which matches with the appropriate organism build.
 
