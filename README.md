@@ -94,35 +94,35 @@ This script checks that your configuration file is correct and all paths are cor
 
 With the scripts created, we can next perform the analysis.
 
-1. **Read trimming, alignment.** We suppose the `workdir` is defined as `/n/scratch2/qz64/workdir`
-   ```
+Step 1. **Read trimming, alignment.** We suppose the `workdir` is defined as `/n/scratch2/qz64/workdir`
+```
 cd /n/scratch2/qz64/workdir
 sbatch ./integrated.sh CR_BCL11A_W9_r1_S17_R1_001.fastq.gz
 ```
-   The parameter is the fastq file. Always use the _R1_001 version of the pair.
+The parameter is the fastq file. Always use the _R1_001 version of the pair.
 
-1. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size.
-   ```
+Step 2. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size.
+```
 cd aligned.aug10
 sbatch ./integrated.step2.sh CR_BCL11A_W9_r1_S17_aligned_reads.bam
 ```
 
-1. **Motif finding.** CutRunTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
-   ```
+Step 3. **Motif finding.** CutRunTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
+```
 cd ../macs2.narrow.aug18
 sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
 ```
-   By default, CutRunTools keeps duplicate fragments. If instead users wish to use deduplicate version, 
-   ```
+By default, CutRunTools keeps duplicate fragments. If instead users wish to use deduplicate version, 
+```
 cd ../macs2.narrow.aug18.dedup
 sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
 ```
 
-1. **Motif footprinting.**
-   ```
+Step 4. **Motif footprinting.**
+```
 cd ../macs2.narrow.aug18
 sbatch ./integrate.footprinting.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
 ```
-   Beautiful footprinting figures will be located in the directory `fimo.result`. Footprinting figures are created for every motif found by MEME-chip, but only the right motif (associated with TF) will have a proper looking shape. Users can scan through all the motifs' footprints.
+Beautiful footprinting figures will be located in the directory `fimo.result`. Footprinting figures are created for every motif found by MEME-chip, but only the right motif (associated with TF) will have a proper looking shape. Users can scan through all the motifs' footprints.
 
 
