@@ -100,13 +100,11 @@ cd /n/scratch2/qz64/workdir
 sbatch ./integrated.sh CR_BCL11A_W9_r1_S17_R1_001.fastq.gz
 ```
 The parameter is the fastq file. Always use the _R1_001 version of the pair.
-
 1. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size.
 ```
 cd aligned.aug10
 sbatch ./integrated.step2.sh CR_BCL11A_W9_r1_S17_aligned_reads.bam
 ```
-
 1. **Motif finding.** CutRunTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
 ```
 cd ../macs2.narrow.aug18
@@ -117,7 +115,6 @@ By default, CutRunTools keeps duplicate fragments. If instead users wish to use 
 cd ../macs2.narrow.aug18.dedup
 sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
 ```
-
 1. **Motif footprinting.**
 ```
 cd ../macs2.narrow.aug18
