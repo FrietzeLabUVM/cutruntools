@@ -12,7 +12,7 @@ Once the package is installed, please see USAGE.md to use it (but basic usage is
 
 CutRunTools requires a JSON configuration file which specifies all that is needed to run an analysis. 
 A sample configuration file is below. Note the important settings in bold.
-<pre><code>{
+```{
     "Rscriptbin": "/n/app/R/3.3.3/bin",
     "pythonbin": "/n/app/python/2.7.12/bin",
     "trimmomaticbin": "/n/app/trimmomatic/0.36/bin",
@@ -68,47 +68,47 @@ A sample configuration file is below. Note the important settings in bold.
             "time_limit": "0-12:00"
         }
     }
-}</code></pre>
+}```
 
-<code>fastq_directory</code> is the directory containing paired-end CUT&RUN sequences (with _R1_001.fastq.gz and _R2_001.fastq.gz suffix). <code>organism_build</code> is one of supported genome assemblies: hg38, hg19, mm10, and mm9. <code>adapterpath</code> contains Illumina Truseq3-PE adapter sequences (we provide them). <code>genome_sequence</code> is the whole-genome <b>masked</b> sequence which matches with the appropriate organism build.
+`fastq_directory` is the directory containing paired-end CUT&RUN sequences (with _R1_001.fastq.gz and _R2_001.fastq.gz suffix). `organism_build` is one of supported genome assemblies: hg38, hg19, mm10, and mm9. `adapterpath` contains Illumina Truseq3-PE adapter sequences (we provide them). `genome_sequence` is the whole-genome **masked** sequence which matches with the appropriate organism build.
 
 ### Create job submission scripts
-<pre><code>./create_scripts.py config.json
-</code></pre>
-This creates a set of Slurm job-submission scripts based on the configuration file above (named config.json) in the <code>workdir</code> directory. The scripts can be directly, easily executed.
+```./create_scripts.py config.json
+```
+This creates a set of Slurm job-submission scripts based on the configuration file above (named config.json) in the `workdir` directory. The scripts can be directly, easily executed.
 
-<pre><code>./validate.py config.json
-</code></pre>
+```./validate.py config.json
+```
 This script checks that your configuration file is correct and all paths are correct.
 
 ### Four-step process
 
 With the scripts created, we can next perform the analysis.
 
-1. <b>Read trimming, alignment.</b> We suppose the <code>workdir</code> is defined as <code>/n/scratch2/qz64/workdir</code>
-<pre><code>cd /n/scratch2/qz64/workdir
+1. **Read trimming, alignment.** We suppose the `workdir` is defined as `/n/scratch2/qz64/workdir`
+```cd /n/scratch2/qz64/workdir
 sbatch ./integrated.sh CR_BCL11A_W9_r1_S17_R1_001.fastq.gz
-</pre></code> 
+```
 The parameter is the fastq file. Always use the _R1_001 version of the pair.
 
-2. <b>BAM processing, peak calling.</b> It marks duplicates in bam files, and filter fragments by size.
-<pre><code>cd aligned.aug10
+2. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size.
+```cd aligned.aug10
 sbatch ./integrated.step2.sh CR_BCL11A_W9_r1_S17_aligned_reads.bam
-</pre></code>
+```
 
-3. <b>Motif finding.</b> CutRunTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
-<pre><code>cd ../macs2.narrow.aug18
+3. **Motif finding.** CutRunTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
+```cd ../macs2.narrow.aug18
 sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
-</pre></code>
+```
 By default, CutRunTools keeps duplicate fragments. If instead users wish to use deduplicate version, 
-<pre><code>cd ../<b>macs2.narrow.aug18.dedup</b>
+```cd ../<b>macs2.narrow.aug18.dedup</b>
 sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
-</pre></code>
+```
 
-4. <b>Motif footprinting.</b>
-<pre><code>cd ../macs2.narrow.aug18
+4. **Motif footprinting.**
+```cd ../macs2.narrow.aug18
 sbatch ./integrate.footprinting.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
-</code></pre>
-Beautiful footprinting figures will be located in the directory <code>fimo.result</code>. Footprinting figures are created for every motif found by MEME-chip, but only the right motif (associated with TF) will have have a proper looking shape. Users can scan through individual motif's footprint.
+```
+Beautiful footprinting figures will be located in the directory `fimo.result`. Footprinting figures are created for every motif found by MEME-chip, but only the right motif (associated with TF) will have have a proper looking shape. Users can scan through individual motif's footprint.
 
 
