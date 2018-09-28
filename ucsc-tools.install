@@ -1,0 +1,5 @@
+rm -rf fetchChromSizes bedGraphtoBigWig
+wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/fetchChromSizes
+wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
+chmod a+x fetchChromSizes
+chmod a+x bedGraphToBigWig
