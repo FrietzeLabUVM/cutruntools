@@ -8,15 +8,15 @@ url=http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.chromFaMasked.ta
 bedtoolsbin=/n/app/bedtools/2.26.0/bin
 
 cur=`pwd`
-mkdir chrom.hg38
-cd chrom.hg38
+mkdir assemblies/chrom.hg38
+cd assemblies/chrom.hg38
 rm -rf hg38.chromFaMasked.tar.gz
 wget $url
 tar -zxf hg38.chromFaMasked.tar.gz
 ls -1 maskedChroms/chr*.fa|xargs cat > hg38.fa
 #ls -1 chr*.fa.masked |xargs cat > hg38.fa
 #should create *.fai index file
-$bedtoolsbin/bedtools getfasta -fi hg38.fa -bed ../sample.bed
-../fetchChromSizes hg38 > hg38.chrom.sizes
+$bedtoolsbin/bedtools getfasta -fi hg38.fa -bed ../../sample.bed
+../../fetchChromSizes hg38 > hg38.chrom.sizes
 #rm -rf chr*.fa.masked
 cd $cur
