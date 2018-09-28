@@ -75,10 +75,10 @@ Note the important settings above are: **adapterpath** (line 8), **bt2idx** (lin
 section **input/output**: **fastq_directory** (line 22), **workdir** (line 23), **fastq_sequence_length** (line 24),
 **organism_build** (line 25); section **cluster**: **email** (line 35).
 
-* `fastq_directory` is the directory containing paired-end CUT&RUN sequences (with _R1_001.fastq.gz and _R2_001.fastq.gz suffix). 
-* `organism_build` is one of supported genome assemblies: hg38, hg19, mm10, and mm9. 
-* `adapterpath` contains Illumina Truseq3-PE adapter sequences (we provide them). 
-* `genome_sequence` is the whole-genome **masked** sequence which matches with the appropriate organism build.
+*  `fastq_directory` is the directory containing paired-end CUT&RUN sequences (with _R1_001.fastq.gz and _R2_001.fastq.gz suffix). 
+*  `organism_build` is one of supported genome assemblies: hg38, hg19, mm10, and mm9. 
+*  `adapterpath` contains Illumina Truseq3-PE adapter sequences (we provide them). 
+*  `genome_sequence` is the whole-genome **masked** sequence which matches with the appropriate organism build.
 
 ### Create job submission scripts
 ```
@@ -94,20 +94,20 @@ This script checks that your configuration file is correct and all paths are cor
 
 With the scripts created, we can next perform the analysis.
 
-1. **Read trimming, alignment.** We suppose the `workdir` is defined as `/n/scratch2/qz64/workdir`
+1.  **Read trimming, alignment.** We suppose the `workdir` is defined as `/n/scratch2/qz64/workdir`
 ```
 cd /n/scratch2/qz64/workdir
 sbatch ./integrated.sh CR_BCL11A_W9_r1_S17_R1_001.fastq.gz
 ```
 The parameter is the fastq file. Always use the _R1_001 version of the pair.
 
-2. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size.
+2.  **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size.
 ```
 cd aligned.aug10
 sbatch ./integrated.step2.sh CR_BCL11A_W9_r1_S17_aligned_reads.bam
 ```
 
-3. **Motif finding.** CutRunTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
+3.  **Motif finding.** CutRunTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
 ```
 cd ../macs2.narrow.aug18
 sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
@@ -118,7 +118,7 @@ cd ../macs2.narrow.aug18.dedup
 sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
 ```
 
-4. **Motif footprinting.**
+4.  **Motif footprinting.**
 ```
 cd ../macs2.narrow.aug18
 sbatch ./integrate.footprinting.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
