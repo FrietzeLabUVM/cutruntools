@@ -13,7 +13,7 @@ Once the package is installed, please see USAGE.md to use it (but basic usage is
 CutRunTools requires a JSON configuration file which specifies all that is needed to run an analysis. 
 A sample configuration file is below. 
 
-```javascript
+```json
 {
 	"Rscriptbin": "/n/app/R/3.3.3/bin",
 	"pythonbin": "/n/app/python/2.7.12/bin",
