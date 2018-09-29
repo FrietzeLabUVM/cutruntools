@@ -23,9 +23,9 @@ In the bracket is the version we have. CutRunTools may work with a lower version
 
 ### Atactk
 
-This is a [python2 package](https://github.com/ParkerLab/atactk) that determines the enzyme cut frequency matrix, started with the Tn5 transposase in ATAC-seq. The logic also applies to other digestion-based approaches like CUT&RUN. The enzyme cuts around TF binding sites, creating DNA fragments. Frequency of enzyme cuts is thus determined by the start and end positions of DNA fragments.
+This is a [python2 package](https://github.com/ParkerLab/atactk) that determines the enzyme cut frequency matrix. Originally for Tn5 transposase in ATAC-seq, the logic of the tool also applies to other digestions like CUT&RUN. The enzyme cuts around TF binding sites, creating DNA fragments. Frequency of enzyme cuts is thus determined by the start and end positions of DNA fragments.
 
-The original implementation contains an annoyance in computing the end position of a DNA fragment: it is always off by 1 bp. We fixed this problem and provide a patch for this problem. Install the patched version of the package by reading [`atactk.install.sh`](atactk.install.sh). The patches [`make_cut_matrix.patch`](make_cut_matrix.patch] and [`metrics.py.patch`](metrics.py.patch). Then install by:
+The original implementation contains an annoyance in computing the end position of a DNA fragment: it is always off by 1 bp. We fixed this problem and provide a patch for this problem. Install the patched version of the package by reading [`atactk.install.sh`](atactk.install.sh). The patches [`make_cut_matrix.patch`](make_cut_matrix.patch) and [`metrics.py.patch`](metrics.py.patch). Then install by:
 
 ```
 source atactk.install.sh
@@ -35,7 +35,7 @@ This will use pip to install atactk to the user's home directory (~/.local/bin).
 
 ### UCSC-tools
 
-We only need two commands of this package: bedGraph2BigWig and fetchChromSizes. We provide a script to automatically download and install them from the UCSC genome browser:
+We need two specific tools bedGraph2BigWig and fetchChromSizes, and provide a script [`ucsc-tools.install`](ucsc-tools.install) to automatically download and install them from the UCSC genome browser:
 ```
 source ucsc-tools.install
 ```
@@ -115,7 +115,7 @@ To check if the paths are correct and if the softwares in these paths indeed wor
 
 ## Download genome assemblies
 
-The genome sequence of a specific organism build (such as hg19, hg38) is required for motif finding. We provide a script [`assemblies.install`](assemblies.install) to download this automatically from NCBI. We specifically require repeat-**masked** genome sequence file. We support genome assembilies hg19, hg38, mm10, mm9.
+The genome sequence of a specific organism build (such as hg19, hg38) is required for motif finding. We provide a script [`assemblies.install`](assemblies.install) to download this automatically from NCBI. We specifically require repeat-**masked** version of genome sequence file. See [`assemblies.install`](assemblies.install) for more details. 
 ```
 source assemblies.install
 ```
