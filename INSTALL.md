@@ -1,6 +1,6 @@
 # CutRunTools Installations
 
-CutRunTools requires Python 2.7, R 3.3, Java, and Slurm job submission environment. It is designed to run on a cluster set up.
+CutRunTools requires Python 2.7, R 3.3, Java, and [Slurm](https://slurm.schedmd.com/) job submission environment. It is designed to run on a cluster set up.
 
 Installation also requires GCC to compile some C-based source code. 
 
@@ -10,41 +10,41 @@ The following tools should be already installed, and check the corresponding web
 
 In the bracket is the version we have. CutRunTools may work with a lower version of each tool. 
 
-* Trimmomatic (0.36)
-* Bowtie2 (2.2.9)
-* Samtools (1.3.1)
-* Picard (2.8.0)
-* MACS2 (2.1.1)
-* MEME (4.12.0)
-* Bedops (2.4.30)
-* Bedtools (2.26.0)
-* Atactk - we provide special install instructions since we need to patch a source file.
-* UCSC-tools - we provide special install instructions.
+* Trimmomatic (0.36) [link](http://www.usadellab.org/cms/?page=trimmomatic)
+* Bowtie2 (2.2.9) [link](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
+* Samtools (1.3.1) [link](http://samtools.sourceforge.net/)
+* Picard (2.8.0) [link](https://broadinstitute.github.io/picard/)
+* MACS2 (2.1.1) [link](https://github.com/taoliu/MACS)
+* MEME (4.12.0) [link](http://meme-suite.org/tools/meme)
+* Bedops (2.4.30) [link](https://bedops.readthedocs.io/en/latest/)
+* Bedtools (2.26.0) [link](https://bedtools.readthedocs.io/en/latest/)
+* Atactk [link](https://github.com/ParkerLab/atactk)- we provide special install instructions since we need to patch a source file.
+* UCSC-tools [link](http://hgdownload.soe.ucsc.edu/admin/exe/)- we provide special install instructions.
 
 ### Atactk
 
-This is a python2 package that determines the pA-MNase enzyme cut frequency matrix. The enzyme cuts around TF binding sites, creating DNA fragments. Frequency of enzyme cuts is thus determined by the start and end positions of DNA fragments.
+This is a [python2 package](https://github.com/ParkerLab/atactk) that determines the pA-MNase enzyme cut frequency matrix. The enzyme cuts around TF binding sites, creating DNA fragments. Frequency of enzyme cuts is thus determined by the start and end positions of DNA fragments.
 
 The original implementation contains a mistake in computing the ending position of a fragment: it is off by 1bp. We fixed this problem. To apply the patch containing this fix and install the patched version of the package, please read `atactk.install.sh`. Make sure you have the files `make_cut_matrix.patch` and `metrics.py.patch`. Then install by:
 
 ```
 source atactk.install.sh
 ```
-This will install atactk to the user's home directory (~/.local/bin).
+This will use pip to install atactk to the user's home directory (~/.local/bin).
 
 
 ### UCSC-tools
 
-We only need two commands of this package: bedgraph2BigWig and fetchChromSizes. We provide a script to automatically download and install them from UCSC genome browser:
+We only need two commands of this package: bedGraph2BigWig and fetchChromSizes. We provide a script to automatically download and install them from the UCSC genome browser:
 ```
 source ucsc-tools.install
 ```
 This will download the two executables in the current directory.
 
 
-### Configuration file
+## Configuration file
 
-The configuration file tells CutRunTools where to locate the prerequisite tools. This is a JSON file. It looks like below (which shows a sample `config.json`). Filling in the information should be pretty easy: in most cases we need to provide the path to the `bin` directory of each tool.
+The configuration file tells CutRunTools where to locate the prerequisite tools. This is a [JSON](http://www.json.org/) file. It looks like below (which shows a sample `config.json`). Filling in the information should be pretty easy: in most cases we need to provide the path to the `bin` directory of each tool.
 
 ```json
 {
@@ -106,28 +106,28 @@ The configuration file tells CutRunTools where to locate the prerequisite tools.
 	}
 }
 ```
-Please look at **the first 20 lines of this file** which concern the software installation. The rest concerns an actual analysis. 
+Pay attention to the **the first 20 lines of this file** which concern the software installation. The rest is related to an actual analysis. 
 
 To check if the paths are correct and if the softwares in these paths indeed work:
 ```
 ./validate.py config.json --ignore-input-output --software
 ```
 
-### Download genome assemblies
+## Download genome assemblies
 
-CutRunTools requires the genome sequence of a specific organism build (such as hg19, hg38). We provide a script to download this automatically from NCBI. We specifically require repeat-**masked** genome sequence file. So far, the following **genome assemblies** are supported: hg19, hg38, mm10, mm9.
+CutRunTools requires the genome sequence of a specific organism build (such as hg19, hg38). We provide a script to download this automatically from NCBI. We specifically require repeat-**masked** genome sequence file. We support genome assembilies hg19, hg38, mm10, mm9.
 ```
 source assemblies.install
 ```
 
-### Install CENTIPEDE
+## Install CENTIPEDE
 
 In R, run:
 ```
 install.packages("CENTIPEDE", repos="http://R-Forge.R-project.org")
 ```
 
-### Install CutRunTools
+## Install CutRunTools
 
 We first install a special trimmer we wrote `kseq`. This tool further trims the reads by 6nt to get rid of the problem of possible adapter run-through. To install:
 ```
@@ -142,5 +142,5 @@ It can be run directly from the directory containing the CutRunTools scripts.
 
 The main program consists of `create_scripts.py`, `validate.py`, and a set of scripts in `aligned.aug10`, and in `macs2.narrow.aug18` which perform the important motif finding and footprinting analyses.
 
-See USAGE.md for details. Briefly, a user writes a `config.json` configuration file for a new analysis. CutRunTools uses this to generate a set of slurm-based job-submission scripts, customized to the user's samples and environment. These job-submission scripts can be directly used by the user to start analyzing their Cut&Run samples.
+See [USAGE.md](USAGE.md) for details. Briefly, a user writes a `config.json` configuration file for a new analysis. CutRunTools uses this to generate a set of slurm-based job-submission scripts, customized to the user's samples and environment. These job-submission scripts can be directly used by the user to start analyzing their Cut&Run samples.
 
