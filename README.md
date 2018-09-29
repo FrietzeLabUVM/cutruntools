@@ -20,23 +20,24 @@ A sample configuration file is below.
 		"trimmomaticjarfile": "trimmomatic-0.36.jar",
 		"bowtie2bin": "/n/app/bowtie2/2.2.9/bin",
 		"samtoolsbin": "/n/app/samtools/1.3.1/bin",
-		"adapterpath": "/home/qz64",
+		"adapterpath": "/home/qz64/cutrun_pipeline/adapters", 
 		"picardbin": "/n/app/picard/2.8.0/bin",
 		"picardjarfile": "picard-2.8.0.jar",
 		"macs2bin": "/n/app/macs2/2.1.1.20160309/bin",
-		"kseqbin": "/home/qz64",
-		"memebin": "/home/qz64/meme/bin",
-		"bedopsbin": "/home/qz64/bin",
+		"macs2pythonlib": "/n/app/macs2/2.1.1.20160309/lib/python2.7/site-packages",
+		"kseqbin": "/home/qz64/cutrun_pipeline", 
+		"memebin": "/n/app/meme/4.12.0/bin", 
+		"bedopsbin": "/n/app/bedops/2.4.30", 
 		"bedtoolsbin": "/n/app/bedtools/2.26.0/bin",
 		"makecutmatrixbin": "/home/qz64/.local/bin",
 		"bt2idx": "/n/groups/shared_databases/bowtie2_indexes",
 		"genome_sequence": "/home/qz64/chrom.hg19/hg19.fa",
-		"extratoolsbin": "/home/qz64",
-		"extrasettings": "/home/qz64",
+		"extratoolsbin": "/home/qz64/cutrun_pipeline", 
+		"extrasettings": "/home/qz64/cutrun_pipeline", 
 		"input/output": {
 			"fastq_directory": "/n/scratch2/qz64/Nan_18_aug23/Nan_run_19",
 			"workdir": "/n/scratch2/qz64/workdir",
-			"fastq_sequence_length": 40,
+			"fastq_sequence_length": 42,
 			"organism_build": "hg19"
 		},
 		"motif_finding": {
@@ -47,7 +48,7 @@ A sample configuration file is below.
 			"num_motifs": 20
 		},
 		"cluster": {
-			"email": "bernardzhu@gmail.com",
+			"email": "johndoe@gmail.com",
 			"step_alignment": {
 				"queue": "short",
 				"memory": 32000,

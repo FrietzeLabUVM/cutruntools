@@ -11,8 +11,8 @@
     "macs2bin": "/n/app/macs2/2.1.1.20160309/bin", 
     "macs2pythonlib": "/n/app/macs2/2.1.1.20160309/lib/python2.7/site-packages",
     "kseqbin": "/home/qz64/cutrun_pipeline", 
-    "memebin": "/n/app/meme/4.12.0/bin", 
-    "bedopsbin": "/n/app/bedops/2.4.30", 
+    "memebin": "/home/qz64/meme/bin", 
+    "bedopsbin": "/home/qz64/bin", 
     "bedtoolsbin": "/n/app/bedtools/2.26.0/bin", 
     "makecutmatrixbin": "/home/qz64/.local/bin", 
     "bt2idx": "/n/groups/shared_databases/bowtie2_indexes", 
@@ -27,10 +27,10 @@
     }, 
     "motif_finding": {
         "num_bp_from_summit": 150, 
-        "num_peaks": 1000, 
-        "total_peaks": 5000, 
+        "num_peaks": 5000, 
+        "total_peaks": 15000, 
         "motif_scanning_pval": 0.0005, 
-        "num_motifs": 10
+        "num_motifs": 20
     }, 
     "cluster": {
         "email": "bernardzhu@gmail.com", 

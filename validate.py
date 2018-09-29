@@ -13,7 +13,7 @@ def check_program_exists(path, program):
 	
 
 if __name__=="__main__":
-	f = open("config.json")
+	f = open(sys.argv[1]) #config.json
 	config = json.load(f)
 	f.close()
 
@@ -82,7 +82,7 @@ if __name__=="__main__":
 	if not check_program_exists(config["adapterpath"], "Truseq3.PE.fa"):
 		sys.exit(1)
 
-	if not check_program_exists(config["extrasettings"], "%s.chrom.sizes" % 
+	if not check_program_exists(os.path.dirname(config["genome_sequence"]), "%s.chrom.sizes" % 
 	config["input/output"]["organism_build"]):
 		sys.exit(1)
 

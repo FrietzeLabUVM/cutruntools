@@ -12,9 +12,18 @@ cd ..
 
 cd ~/.local/bin
 cp $cur/make_cut_matrix.patch .
-patch make_cut_matrix < make_cut_matrix.patch
+patch -p0 -N --dry-run --silent make_cut_matrix < make_cut_matrix.patch 2> /dev/null
+if [ $? -eq 0 ];
+then
+patch -p0 -N make_cut_matrix < make_cut_matrix.patch
+fi
+
 cd ~/.local/lib/python2.7/site-packages/atactk
 cp $cur/metrics.py.patch .
-patch metrics.py < metrics.py.patch
+patch -p0 -N --dry-run --silent metrics.py < metrics.py.patch 2> /dev/null
+if [ $? -eq 0 ];
+then
+patch -p0 -N metrics.py < metrics.py.patch
+fi
 
 cd $cur
