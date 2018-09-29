@@ -5,7 +5,7 @@ The pipeline comprises of read trimming, alignment steps, motif finding steps, a
 
 To get started, please see [INSTALL.md](INSTALL.md) about how to set up the pipeline.
 
-Once the package is installed, please see [USAGE.md](USAGE.md) about usage. But basic usage is provided below.
+Once the package is installed, please see [USAGE.md](USAGE.md) about usage. Basic usage is provided below.
 
 
 ## Basic Usage
@@ -102,7 +102,7 @@ Step 1. **Read trimming, alignment.** We suppose the `workdir` is defined as `/n
 cd /n/scratch2/qz64/workdir
 sbatch ./integrated.sh CR_BCL11A_W9_r1_S17_R1_001.fastq.gz
 ```
-The parameter is the fastq file. Even though we specify the _R1_001.fastq.gz, CutRunTools actually checks that both forward and reverse ffastq files are present. Always use the _R1_001 of the pair as parameter.
+The parameter is the fastq file. Even though we specify the _R1_001.fastq.gz, CutRunTools actually checks that both forward and reverse fastq files are present. Always use the _R1_001 of the pair as parameter of this command.
 
 Step 2. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size.
 ```bash
