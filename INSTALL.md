@@ -1,4 +1,4 @@
-# CutRunTools Installations
+# CutRunTools Installation
 
 CutRunTools requires Python 2.7, R 3.3, Java, and [Slurm](https://slurm.schedmd.com/) job submission environment. It is designed to run on a cluster set up.
 
@@ -6,7 +6,7 @@ Installation also requires GCC to compile some C-based source code.
 
 ## Prerequisites
 
-The following tools should be already installed, and check the corresponding website to see how to install them if not. Special notes for Atactk and UCSC-tools, see below.
+The following tools should be already installed. Check the corresponding website to see how to install them if not. Special notes for Atactk and UCSC-tools, see below.
 
 In the bracket is the version we have. CutRunTools may work with a lower version of each tool. 
 
@@ -23,9 +23,9 @@ In the bracket is the version we have. CutRunTools may work with a lower version
 
 ### Atactk
 
-This is a [python2 package](https://github.com/ParkerLab/atactk) that determines the pA-MNase enzyme cut frequency matrix. The enzyme cuts around TF binding sites, creating DNA fragments. Frequency of enzyme cuts is thus determined by the start and end positions of DNA fragments.
+This is a [python2 package](https://github.com/ParkerLab/atactk) that determines the enzyme cut frequency matrix, started with the Tn5 transposase in ATAC-seq. The logic also applies to other digestion-based approaches like CUT&RUN. The enzyme cuts around TF binding sites, creating DNA fragments. Frequency of enzyme cuts is thus determined by the start and end positions of DNA fragments.
 
-The original implementation contains a mistake in computing the ending position of a fragment: it is off by 1bp. We fixed this problem. To apply the patch containing this fix and install the patched version of the package, please read `atactk.install.sh`. Make sure you have the files `make_cut_matrix.patch` and `metrics.py.patch`. Then install by:
+The original implementation contains an annoyance in computing the end position of a DNA fragment: it is always off by 1 bp. We fixed this problem and provide a patch for this problem. Install the patched version of the package by reading [`atactk.install.sh`](atactk.install.sh). The patches [`make_cut_matrix.patch`](make_cut_matrix.patch] and [`metrics.py.patch`](metrics.py.patch). Then install by:
 
 ```
 source atactk.install.sh
@@ -44,7 +44,7 @@ This will download the two executables in the current directory.
 
 ## Configuration file
 
-The configuration file tells CutRunTools where to locate the prerequisite tools. This is a [JSON](http://www.json.org/) file. It looks like below (which shows a sample `config.json`). Filling in the information should be pretty easy: in most cases we need to provide the path to the `bin` directory of each tool.
+The configuration file tells CutRunTools where to locate the prerequisite tools. This is a [JSON](http://www.json.org/) file. A sample JSON file is provided below ([`config.json`](config.json)). Filling in the information should be pretty easy: in most cases we need to provide the path to the `bin` directory of each tool.
 
 ```json
 {
@@ -106,7 +106,7 @@ The configuration file tells CutRunTools where to locate the prerequisite tools.
 	}
 }
 ```
-Pay attention to the **the first 20 lines of this file** which concern the software installation. The rest is related to an actual analysis. 
+Pay attention to the **the first 20 lines of this file** which concern the software installation. The rest is related to an actual analysis (explained in [USAGE.md](USAGE.md)). 
 
 To check if the paths are correct and if the softwares in these paths indeed work:
 ```
@@ -115,7 +115,7 @@ To check if the paths are correct and if the softwares in these paths indeed wor
 
 ## Download genome assemblies
 
-CutRunTools requires the genome sequence of a specific organism build (such as hg19, hg38). We provide a script to download this automatically from NCBI. We specifically require repeat-**masked** genome sequence file. We support genome assembilies hg19, hg38, mm10, mm9.
+The genome sequence of a specific organism build (such as hg19, hg38) is required for motif finding. We provide a script [`assemblies.install`](assemblies.install) to download this automatically from NCBI. We specifically require repeat-**masked** genome sequence file. We support genome assembilies hg19, hg38, mm10, mm9.
 ```
 source assemblies.install
 ```
@@ -129,7 +129,7 @@ install.packages("CENTIPEDE", repos="http://R-Forge.R-project.org")
 
 ## Install CutRunTools
 
-We first install a special trimmer we wrote `kseq`. This tool further trims the reads by 6nt to get rid of the problem of possible adapter run-through. To install:
+We first install a special trimmer we wrote `kseq`. This tool further trims the reads by 6 nt to get rid of the problem of possible adapter run-through. To install:
 ```
 source make_kseq_test.sh
 ```
@@ -142,5 +142,5 @@ It can be run directly from the directory containing the CutRunTools scripts.
 
 The main program consists of `create_scripts.py`, `validate.py`, and a set of scripts in `aligned.aug10`, and in `macs2.narrow.aug18` which perform the important motif finding and footprinting analyses.
 
-See [USAGE.md](USAGE.md) for details. Briefly, a user writes a `config.json` configuration file for a new analysis. CutRunTools uses this to generate a set of slurm-based job-submission scripts, customized to the user's samples and environment. These job-submission scripts can be directly used by the user to start analyzing their Cut&Run samples.
+See [USAGE.md](USAGE.md) for details. Briefly, a user writes a `config.json` configuration file for a new analysis. CutRunTools uses this to generate a set of slurm-based job-submission scripts, customized to the user's samples and environment. These job-submission scripts can be directly used by the user to start analyzing his/her Cut&Run samples.
 
