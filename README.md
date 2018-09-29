@@ -12,7 +12,7 @@ Once the package is installed, please see USAGE.md to use it (but basic usage is
 
 CutRunTools requires a JSON configuration file which specifies all that is needed to run an analysis. 
 A sample configuration file is below. 
-
+```json
 	{
 		"Rscriptbin": "/n/app/R/3.3.3/bin",
 		"pythonbin": "/n/app/python/2.7.12/bin",
@@ -71,7 +71,7 @@ A sample configuration file is below.
 			}
 		}
 	}
-
+```
 Note the important settings above are: **adapterpath** (line 8), **bt2idx** (line 17); **genome_sequence** (line 18);
 section **input/output**: **fastq_directory** (line 22), **workdir** (line 23), **fastq_sequence_length** (line 24),
 **organism_build** (line 25); section **cluster**: **email** (line 35).
