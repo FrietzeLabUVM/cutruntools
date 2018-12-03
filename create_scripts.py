@@ -121,7 +121,7 @@ logdir=$workdir/logs
 
 mkdir $logdir
 pythonlib=`echo $PYTHONPATH | tr : "\\n" | grep -v $macs2pythonlib | paste -s -d:`
-unset $PYTHONPATH
+unset PYTHONPATH
 export PYTHONPATH=$pythonlib:$macs2pythonlib
 
 """ % (config["picardbin"], config["picardjarfile"], config["samtoolsbin"], 
@@ -248,11 +248,13 @@ bedopsbin=%s
 bedtoolsbin=%s
 pythonbin=%s
 genome_sequence=%s
+extrasettings=%s
+blacklist=$extrasettings/%s.blacklist.bed
 
 i=$1 #filename must end with .narrowPeak
 >&2 echo "Input file is $i"
 
-for d in padded padded.fa repeat.region filtered; do
+for d in padded padded.fa repeat.region filtered blk_filtered; do
 if [ ! -d $d ]; then
 mkdir $d
 fi
@@ -265,8 +267,7 @@ fname=`basename $i _peaks.narrowPeak`
 peak=$fname"_peaks.narrowPeak"
 summit=$fname"_summits.bed"
 summitfa=$fname"_summits_padded.fa"
-""" % (config["memebin"], config["bedopsbin"], config["bedtoolsbin"], config["pythonbin"], config["genome_sequence"])
-
+""" % (config["memebin"], config["bedopsbin"], config["bedtoolsbin"], config["pythonbin"], config["genome_sequence"], config["extrasettings"], config["input/output"]["organism_build"])
 
 	scripts2 = """>&2 echo "Get filtered peaks..."
 $bedopsbin/bedops --range %d -u $workdir/$dname/$summit > padded/$summit
@@ -274,6 +275,9 @@ $bedtoolsbin/bedtools getfasta -fi $genome_sequence -bed padded/$summit -fo padd
 $pythonbin/python filter.py padded.fa/$summitfa %d > repeat.region/$summit
 $bedopsbin/bedops -n 1 $workdir/$dname/$summit repeat.region/$summit | $bedopsbin/sort-bed - > filtered/$summit
 $bedopsbin/bedops -e 1 $workdir/$dname/$peak filtered/$summit > filtered/$peak
+cat filtered/$peak | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > blk_filtered/$peak
+cat filtered/$summit | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > blk_filtered/$summit
+
 """ % (config["motif_finding"]["num_bp_from_summit"], 2*config["motif_finding"]["num_bp_from_summit"])
 
 	scripts3 = """#motif discovery starts here
@@ -289,8 +293,8 @@ fi
 done
 
 >&2 echo "Get randomized %d peaks..."
-cat filtered/$peak | sort -t"	" -g -k8 -r | head -n %d | shuf | head -n %d | $bedopsbin/sort-bed - > $motif_dir/$peak
-$bedopsbin/bedops -e 1 filtered/$summit $motif_dir/$peak > $msummit/$summit
+cat blk_filtered/$peak | sort -t"	" -g -k8 -r | head -n %d | shuf | head -n %d | $bedopsbin/sort-bed - > $motif_dir/$peak
+$bedopsbin/bedops -e 1 blk_filtered/$summit $motif_dir/$peak > $msummit/$summit
 $bedopsbin/bedops --range %d -u $msummit/$summit > $mpadded/$summit
 
 $bedtoolsbin/bedtools getfasta -fi $genome_sequence -bed $mpadded/$summit -fo $mpaddedfa/$summitfa
@@ -350,24 +354,30 @@ genome_sequence=%s
 samtoolsbin=%s
 makecutmatrixbin=%s
 Rscriptbin=%s
+extrasettings=%s
 
 p=%.5f
 motif_dir=$mdiscovery/motifs #a directory containing a list of *.meme files
 base=`basename $peak_file .narrowPeak`
 workdir=`pwd`
-dir=`dirname $peak_file`
-fa_dir=filtered.fa
+dir=blk_filtered
+fa_dir=blk_filtered.fa
 
 if [ ! -d $fa_dir ]; then
 mkdir $fa_dir
 fi
+
+blacklist=$extrasettings/%s.blacklist.bed
+cat $workdir/$dir/"$base".narrowPeak | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > $workdir/$dir/"$base".filtered.narrowPeak
 """ % (config["memebin"], config["bedopsbin"], config["bedtoolsbin"], 
 	config["genome_sequence"], config["samtoolsbin"], 
 	config["makecutmatrixbin"], config["Rscriptbin"],
-	config["motif_finding"]["motif_scanning_pval"])
+	config["extrasettings"], 
+	config["motif_finding"]["motif_scanning_pval"], 
+	config["input/output"]["organism_build"])
 
 	scripts3 = """
-$bedtoolsbin/bedtools getfasta -fi $genome_sequence -bed $workdir/$dir/"$base".narrowPeak -fo $fa_dir/"$base".fa
+$bedtoolsbin/bedtools getfasta -fi $genome_sequence -bed $workdir/$dir/"$base".filtered.narrowPeak -fo $fa_dir/"$base".fa
 $pythonbin/python fix_sequence.py $fa_dir/"$base".fa
 
 outdir=fimo.result
@@ -384,6 +394,11 @@ if [ ! -d $fimo_d ]; then
 mkdir $fimo_d
 fi
 $memebin/fimo --thresh $p --parse-genomic-coord -oc $fimo_d $motif_dir/"$motif".meme $fa_dir/"$base".fa
+
+cur_path=`echo $PATH | tr : "\\n" | grep -v $bedopsbin | paste -s -d:`
+unset PATH
+export PATH=$cur_path:$bedopsbin
+
 $bedopsbin/gff2bed < $fimo_d/fimo.gff | awk 'BEGIN {IFS="\t"; OFS="\t";} {print $1,$2,$3,$4,$5,$6}' > $fimo_d/fimo.bed
 done
 """
@@ -411,7 +426,7 @@ $samtoolsbin/samtools view -b -h -f 3 -F 4 -F 8 -F 1024 -o $outbam $bamfile #pre
 	scripts6 = """
 $samtoolsbin/samtools index $outbam
 
-peakfile=filtered/"$base"_peaks.narrowPeak
+peakfile=blk_filtered/"$base"_peaks.narrowPeak
 fimo_dir=fimo.result/"$base"_peaks
 
 for i in `ls -1 $fimo_dir`; do #shows a list of motifs

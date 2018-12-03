@@ -11,7 +11,7 @@
     "macs2bin": "/n/app/macs2/2.1.1.20160309/bin", 
     "macs2pythonlib": "/n/app/macs2/2.1.1.20160309/lib/python2.7/site-packages",
     "kseqbin": "/home/qz64/cutrun_pipeline", 
-    "memebin": "/n/app/meme/4.12.0/bin", 
+    "memebin": "/home/qz64/meme/bin", 
     "bedopsbin": "/n/app/bedops/2.4.30", 
     "bedtoolsbin": "/n/app/bedtools/2.26.0/bin", 
     "makecutmatrixbin": "/home/qz64/.local/bin", 
