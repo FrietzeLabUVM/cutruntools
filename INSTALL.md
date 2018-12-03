@@ -145,3 +145,4 @@ The main program consists of `create_scripts.py`, `validate.py`, and a set of sc
 
 See [USAGE.md](USAGE.md) for details. Briefly, a user writes a `config.json` configuration file for a new analysis. CutRunTools uses this to generate a set of slurm-based job-submission scripts, customized to the user's samples and environment. These job-submission scripts can be directly used by the user to start analyzing his/her Cut&Run samples.
 
+

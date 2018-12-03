@@ -129,3 +129,49 @@ sbatch ./integrate.footprinting.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narro
 Beautiful footprinting figures will be located in the directory `fimo.result`. Footprinting figures are created for every motif found by MEME-chip, but only the right motif (associated with TF) will have a proper looking shape. Users can scan through all the motifs' footprints.
 
 
+### Outputs
+
+Please see [USAGE.md](USAGE.md) for more details for the output files.
+
+Briefly, CUT&RUNTools will generate the following directory structure in the output folder.
+
+```
++ macs2.narrow.aug18
+  + random.10000
+    + MEME_GATA1_HDP2_30min_S13_aligned_reads_shuf
+      ++ summary.tsv
+  + fimo.result
+    + GATA1_HDP2_30min_S13_aligned_reads_peaks
+      + fimo2.DREME-10.CCWATCAG
+        ++ fimo.png
+        ++ fimo.logratio.txt
+        ++ fimo.bed
+      + fimo2.DREME-11.CTCCWCCC
+        ++ fimo.png
+        ++ fimo.logratio.txt
+        ++ fimo.bed
+      + fimo2.DREME-12.CACGTG
+        ++ fimo.png
+        ++ fimo.logratio.txt
+        ++ fimo.bed
+      + fimo2.DREME-13.CAKCTGB
+        ++ fimo.png
+        ++ fimo.logratio.txt
+        ++ fimo.bed
+      + fimo2.DREME-14.CWGATA
+        ++ fimo.png
+        ++ fimo.logratio.txt
+        ++ fimo.bed
+      + fimo2.DREME-1.HGATAA
+        ++ fimo.png
+        ++ fimo.logratio.txt
+        ++ fimo.bed
+      + fimo2.DREME-20.CCCTYCC
+        ++ fimo.png
+        ++ fimo.logratio.txt
+        ++ fimo.bed
+```
+
+Files are denoted by "++", and directories are denoted by "+".
+Here the sample name is called GATA1_HDP2_30min_S13.
+The summary.tsv lists all the motif found by motif searching analysis. The files within "fimo2..." folder shows the motif footprinting figure (.png), the motif sites for the motif (.bed), and the logratio binding scores at these sites (.logratio.txt).
