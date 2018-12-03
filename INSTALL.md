@@ -23,9 +23,10 @@ In the bracket is the version we have. CutRunTools may work with a lower version
 
 ### Atactk
 
-This is a [python2 package](https://github.com/ParkerLab/atactk) that determines the enzyme cut frequency matrix. Originally for Tn5 transposase in ATAC-seq, the logic of the tool also applies to other digestions like CUT&RUN. The enzyme cuts around TF binding sites, creating DNA fragments. Frequency of enzyme cuts is thus determined by the start and end positions of DNA fragments.
+This is a [python2 package](https://github.com/ParkerLab/atactk) that determines the enzyme cut frequency matrix. Originally for Tn5 transposase in ATAC-seq, the logic of the tool also applies to other digestions like CUT&RUN. 
+However since original implementation is designed for ATAC-seq it needs to be patched in one small place in the code to make it suitable for CUT&RUN analysis. Otherwise, we estimate that the cut frequency is sometime off by 1 bp in its calculation.
 
-The original implementation contains an annoyance in computing the end position of a DNA fragment: it is always off by 1 bp. We fixed this problem and provide a patch for this problem. Install the patched version of the package by reading [`atactk.install.sh`](atactk.install.sh). The patches [`make_cut_matrix.patch`](make_cut_matrix.patch) and [`metrics.py.patch`](metrics.py.patch). Then install by:
+We provide a patch for this problem. Install the patched version of the package by reading [`atactk.install.sh`](atactk.install.sh). The patches [`make_cut_matrix.patch`](make_cut_matrix.patch) and [`metrics.py.patch`](metrics.py.patch). Then install by:
 
 ```
 source atactk.install.sh
