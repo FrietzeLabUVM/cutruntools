@@ -93,9 +93,23 @@ This creates a set of Slurm job-submission scripts based on the configuration fi
 ```
 This script checks that your configuration file is correct and all paths are correct.
 
-### Four-step process
+### Easy 1-step execution
 
-With the scripts created, we can next perform the analysis.
+The previous step created a working directory and deposited a set of submission scripts. We can now use those scripts to start the analysis on a sample.
+```bash
+cd /n/scratch2/qz64/workdir
+./integrated.all.steps.sh GATA1_D7_30min_chr11_R1_001.fastq.gz
+```
+Note the single parameter the input file. There are supposed to be two files per input sample (R1_001.fastq.gz, R2_001.fastq.gz).
+**Please just use the R1 fastq as input, and do not specify both files**. The toolkit is smart enough to use the filename to automatically look for the R2 file.
+
+What happens next is that CUT&RUNTools will sequentially run the analysis as 4-step process (also see option 2 below). By entering squeue -u <username> you will see 5 scripts submitted to slurm, but they will be executed sequentially one after the other via a dependency.
+
+
+
+### Option 2: Manual four-step process
+
+Optionally, users can run the analysis steps individually to have more control over the steps of the pipeline.
 
 Step 1. **Read trimming, alignment.** We suppose the `workdir` is defined as `/n/scratch2/qz64/workdir`
 ```bash

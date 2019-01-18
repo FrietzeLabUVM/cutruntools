@@ -34,24 +34,36 @@ trimmomaticjarfile=%s
 adapterpath=%s
 bowtie2bin=%s
 samtoolsbin=%s
-len=`cat length`
 
-workdir=`pwd`
 bt2idx=%s
+kseqbin=%s
+
+#mark the directory of the script
+cur=`dirname $0`
+
+infile=$1
+relinfile=`realpath --relative-to=$cur $infile`
+dirname=`dirname $relinfile`
+base=`basename $infile _R1_001.fastq.gz`
+>&2 echo "Input file is $infile"
+>&2 date
+
+#cd to current directory
+cd $cur
+workdir=`pwd`
+
+len=`cat length`
 trimdir=$workdir/trimmed
 trimdir2=$workdir/trimmed3
 logdir=$workdir/logs
 aligndir=$workdir/aligned.aug10
-kseqbin=%s
 
-mkdir $trimdir
-mkdir $trimdir2
-mkdir $logdir
-mkdir $aligndir
+for d in $trimdir $trimdir2 $logdir $aligndir; do
+if [ ! -d $d ]; then
+mkdir $d
+fi
+done
 
-infile=$1
-dirname=`dirname $infile`
-base=`basename $infile _R1_001.fastq.gz`
 """ % (config["trimmomaticbin"], config["trimmomaticjarfile"], config["adapterpath"], 
 	config["bowtie2bin"], config["samtoolsbin"], 
 	config["bt2idx"], config["kseqbin"])
@@ -60,9 +72,7 @@ base=`basename $infile _R1_001.fastq.gz`
 	if config["input/output"]["organism_build"]=="hg38":
 		bowtie2_org = "GRCh38"
 
-	scripts=""">&2 echo "Input file is $infile"
->&2 date
-
+	scripts="""
 #trimming paired-end
 #good version
 >&2 echo "Trimming file $base ..."
@@ -116,10 +126,7 @@ extratoolsbin=%s
 extrasettings=%s
 chromsizedir=`dirname %s`
 macs2pythonlib=%s
-workdir=`pwd`
-logdir=$workdir/logs
 
-mkdir $logdir
 pythonlib=`echo $PYTHONPATH | tr : "\\n" | grep -v $macs2pythonlib | paste -s -d:`
 unset PYTHONPATH
 export PYTHONPATH=$pythonlib:$macs2pythonlib
@@ -130,13 +137,31 @@ export PYTHONPATH=$pythonlib:$macs2pythonlib
 
 	scripts =""">&2 echo "Input parameters are: $1"
 >&2 date
+
+#mark directory of the script if necessary (i.e aligned.aug10)
+cur=`dirname $0`
+
+#get relative path for $1
+relinfile=`realpath --relative-to=$cur $1`
+dirname=`dirname $relinfile`
 base=`basename $1 .bam`
 
-mkdir sorted dup.marked dedup
+#cd to current directory (aligned.aug10)
+cd $cur
+
+workdir=`pwd`
+logdir=$workdir/logs
+
+for d in $logdir sorted dup.marked dedup; do
+if [ ! -d $d ]; then
+mkdir $d
+fi
+done
+
 >&2 echo "Sorting bam... ""$base".bam
 >&2 date
 java -jar $picardbin/$picardjarfile SortSam \
-INPUT="$base".bam OUTPUT=sorted/"$base".bam SORT_ORDER=coordinate
+INPUT=$dirname/"$base".bam OUTPUT=sorted/"$base".bam SORT_ORDER=coordinate
 
 >&2 echo "Marking duplicates... ""$base".bam
 >&2 date
@@ -151,7 +176,12 @@ INPUT=sorted/"$base".bam OUTPUT=dedup/"$base".bam \
 METRICS_FILE=metrics."$base".txt \
 REMOVE_DUPLICATES=true
 
-mkdir sorted.120bp dup.marked.120bp dedup.120bp
+for d in sorted.120bp dup.marked.120bp dedup.120bp; do
+if [ ! -d $d ]; then
+mkdir $d
+fi
+done
+
 >&2 echo "Filtering to <120bp... ""$base".bam
 >&2 date
 $samtoolsbin/samtools view -h sorted/"$base".bam |awk -f $extrasettings/filter_below.awk |$samtoolsbin/samtools view -Sb - > sorted.120bp/"$base".bam
@@ -254,6 +284,16 @@ blacklist=$extrasettings/%s.blacklist.bed
 i=$1 #filename must end with .narrowPeak
 >&2 echo "Input file is $i"
 
+#mark directory of the script if necessary (i.e macs2.narrow.aug10)
+cur=`dirname $0`
+
+#get relative path for $1
+relinfile=`realpath --relative-to=$cur $i`
+dirname=`dirname $relinfile`
+
+#cd to current directory (macs2.narrow.aug10)
+cd $cur
+
 for d in padded padded.fa repeat.region filtered blk_filtered; do
 if [ ! -d $d ]; then
 mkdir $d
@@ -261,8 +301,6 @@ fi
 done
 
 workdir=`pwd`
-
-dname=`dirname $i`
 fname=`basename $i _peaks.narrowPeak`
 peak=$fname"_peaks.narrowPeak"
 summit=$fname"_summits.bed"
@@ -270,11 +308,11 @@ summitfa=$fname"_summits_padded.fa"
 """ % (config["memebin"], config["bedopsbin"], config["bedtoolsbin"], config["pythonbin"], config["genome_sequence"], config["extrasettings"], config["input/output"]["organism_build"])
 
 	scripts2 = """>&2 echo "Get filtered peaks..."
-$bedopsbin/bedops --range %d -u $workdir/$dname/$summit > padded/$summit
+$bedopsbin/bedops --range %d -u $workdir/$summit > padded/$summit
 $bedtoolsbin/bedtools getfasta -fi $genome_sequence -bed padded/$summit -fo padded.fa/$summitfa
 $pythonbin/python filter.py padded.fa/$summitfa %d > repeat.region/$summit
-$bedopsbin/bedops -n 1 $workdir/$dname/$summit repeat.region/$summit | $bedopsbin/sort-bed - > filtered/$summit
-$bedopsbin/bedops -e 1 $workdir/$dname/$peak filtered/$summit > filtered/$peak
+$bedopsbin/bedops -n 1 $workdir/$summit repeat.region/$summit | $bedopsbin/sort-bed - > filtered/$summit
+$bedopsbin/bedops -e 1 $workdir/$peak filtered/$summit > filtered/$peak
 cat filtered/$peak | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > blk_filtered/$peak
 cat filtered/$summit | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > blk_filtered/$summit
 
@@ -342,6 +380,17 @@ pythonbin=%s
 peak_file=$1 #a narrowPeak file
 mbase=`basename $peak_file _peaks.narrowPeak`
 mdiscovery=random.%d/MEME_"$mbase"_shuf
+
+#mark directory of the script if necessary (i.e macs2.narrow.aug10)
+cur=`dirname $0`
+
+#get relative path for $peak_file
+relinfile=`realpath --relative-to=$cur $peak_file`
+dirname=`dirname $relinfile`
+
+#cd to current directory (macs2.narrow.aug10)
+cd $cur
+
 
 $pythonbin/python read.meme.py $mdiscovery
 """ % (config["pythonbin"], config["motif_finding"]["num_peaks"])
@@ -449,12 +498,52 @@ done
 	if output is not None:
 		outp.close()
 
+def generate_integrated_all_steps_sh(output=None):
+	script = """#!/bin/bash
+
+sample=$1
+cur=`dirname $0`
+relsample=`realpath --relative-to=$cur $sample`
+dirname=`dirname $relsample`
+base=`basename $relsample _R1_001.fastq.gz`
+
+cd $cur
+echo "Submitting job 1..."
+jid1=$(sbatch ./integrated.sh $relsample)
+jid1=${jid1##* }
+echo "Submitting job 2..."
+jid2=$(sbatch -d afterany:$jid1 aligned.aug10/integrated.step2.sh aligned.aug10/"$base"_aligned_reads.bam)
+jid2=${jid2##* }
+echo "Submitting job 3..."
+jid3=$(sbatch -d afterany:$jid2 macs2.narrow.aug18/integrate.motif.find.sh macs2.narrow.aug18/"$base"_aligned_reads_peaks.narrowPeak)
+jid3=${jid3##* }
+echo "Submitting job 4..."
+jid4=$(sbatch -d afterany:$jid3 macs2.narrow.aug18/integrate.footprinting.sh macs2.narrow.aug18/"$base"_aligned_reads_peaks.narrowPeak)
+jid4=${jid4##* }
+
+echo "Submitting job 5..."
+jid5=$(sbatch -d afterany:$jid4 macs2.narrow.aug18.dedup/integrate.motif.find.sh macs2.narrow.aug18.dedup/"$base"_aligned_reads_peaks.narrowPeak)
+jid5=${jid5##* }
+echo "Submitting job 6..."
+jid6=$(sbatch -d afterany:$jid5 macs2.narrow.aug18.dedup/integrate.footprinting.sh macs2.narrow.aug18.dedup/"$base"_aligned_reads_peaks.narrowPeak)
+jid6=${jid6##* }
+"""
+	outp = sys.stdout
+	if output is not None:
+		fw = open(output, "w")
+		outp = fw
+	outp.write(script + "\n")
+	if output is not None:
+		outp.close()
+
 def write_length_file(n, length):
 	fw = open(n, "w")
 	fw.write(str(length) + "\n")
 	fw.close()
 
 if __name__=="__main__":
+	curpath = os.path.dirname(os.path.abspath(__file__))
+	#print curpath
 	f = open(sys.argv[1]) #config.json
 	config = json.load(f)
 	f.close()
@@ -478,24 +567,27 @@ if __name__=="__main__":
 	generate_integrated_motif_find_sh(config, output=outdir+"/macs2.narrow.aug18.dedup/integrate.motif.find.sh")
 	generate_integrated_footprinting_sh(config, dedup=False, output=outdir+"/macs2.narrow.aug18/integrate.footprinting.sh")
 	generate_integrated_footprinting_sh(config, dedup=True, output=outdir+"/macs2.narrow.aug18.dedup/integrate.footprinting.sh")
+	generate_integrated_all_steps_sh(output=outdir+"/integrated.all.steps.sh")
 
 	make_executable(outdir+"/integrated.sh")
+	make_executable(outdir+"/integrated.all.steps.sh")
 	make_executable(outdir+"/aligned.aug10/integrated.step2.sh")
 	make_executable(outdir+"/macs2.narrow.aug18/integrate.motif.find.sh")
 	make_executable(outdir+"/macs2.narrow.aug18.dedup/integrate.motif.find.sh")
 	make_executable(outdir+"/macs2.narrow.aug18/integrate.footprinting.sh")
 	make_executable(outdir+"/macs2.narrow.aug18.dedup/integrate.footprinting.sh")
 
-	shutil.copyfile("macs2.narrow.aug18/filter.py", outdir+"/macs2.narrow.aug18/filter.py")
-	shutil.copyfile("macs2.narrow.aug18/fix_sequence.py", outdir+"/macs2.narrow.aug18/fix_sequence.py")
-	shutil.copyfile("macs2.narrow.aug18/read.meme.py", outdir+"/macs2.narrow.aug18/read.meme.py")
-	shutil.copyfile("macs2.narrow.aug18/run_centipede_parker.R", outdir+"/macs2.narrow.aug18/run_centipede_parker.R")
+	shutil.copyfile("%s/macs2.narrow.aug18/filter.py" % curpath, outdir+"/macs2.narrow.aug18/filter.py")
+	shutil.copyfile("%s/macs2.narrow.aug18/fix_sequence.py" % curpath, outdir+"/macs2.narrow.aug18/fix_sequence.py")
+	shutil.copyfile("%s/macs2.narrow.aug18/read.meme.py" % curpath, outdir+"/macs2.narrow.aug18/read.meme.py")
+	shutil.copyfile("%s/macs2.narrow.aug18/run_centipede_parker.R" % curpath, outdir+"/macs2.narrow.aug18/run_centipede_parker.R")
 
-	shutil.copyfile("macs2.narrow.aug18/filter.py", outdir+"/macs2.narrow.aug18.dedup/filter.py")
-	shutil.copyfile("macs2.narrow.aug18/fix_sequence.py", outdir+"/macs2.narrow.aug18.dedup/fix_sequence.py")
-	shutil.copyfile("macs2.narrow.aug18/read.meme.py", outdir+"/macs2.narrow.aug18.dedup/read.meme.py")
-	shutil.copyfile("macs2.narrow.aug18/run_centipede_parker.R", outdir+"/macs2.narrow.aug18.dedup/run_centipede_parker.R")
+	shutil.copyfile("%s/macs2.narrow.aug18/filter.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/filter.py")
+	shutil.copyfile("%s/macs2.narrow.aug18/fix_sequence.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/fix_sequence.py")
+	shutil.copyfile("%s/macs2.narrow.aug18/read.meme.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/read.meme.py")
+	shutil.copyfile("%s/macs2.narrow.aug18/run_centipede_parker.R" % curpath, outdir+"/macs2.narrow.aug18.dedup/run_centipede_parker.R")
 
+	shutil.copyfile(sys.argv[1], outdir+"/config.json")
 
 	flist = set([])
 	for filename in os.listdir(config["input/output"]["fastq_directory"]):
