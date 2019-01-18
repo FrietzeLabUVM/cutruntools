@@ -103,7 +103,7 @@ cd /n/scratch2/qz64/workdir
 Note the single parameter the input file. There are supposed to be two files per input sample (R1_001.fastq.gz, R2_001.fastq.gz).
 **Please just use the R1 fastq as input, and do not specify both files**. The toolkit is smart enough to use the filename to automatically look for the R2 file.
 
-What happens next is that CUT&RUNTools will sequentially run the analysis as 4-step process (also see option 2 below). By entering squeue -u <username> you will see 5 scripts submitted to slurm, but they will be executed sequentially one after the other via a dependency.
+What happens next is that CUT&RUNTools will sequentially run the analysis pipeline which consists of 4 major steps (for details about the steps, see option 2 below). By entering squeue -u <username> you will see 5 scripts submitted to slurm, but they will be executed sequentially one after the other via a dependency.
 
 
 
