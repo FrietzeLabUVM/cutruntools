@@ -38,18 +38,16 @@ samtoolsbin=%s
 bt2idx=%s
 kseqbin=%s
 
-#mark the directory of the script
-cur=`dirname $0`
-
 infile=$1
-relinfile=`realpath --relative-to=$cur $infile`
+#expand the path of infile
+relinfile=`realpath -s $infile`
 dirname=`dirname $relinfile`
 base=`basename $infile _R1_001.fastq.gz`
->&2 echo "Input file is $infile"
+>&2 echo "Input file is $relinfile"
 >&2 date
 
 #cd to current directory
-cd $cur
+cd $dirname
 workdir=`pwd`
 
 len=`cat length`
@@ -138,16 +136,13 @@ export PYTHONPATH=$pythonlib:$macs2pythonlib
 	scripts =""">&2 echo "Input parameters are: $1"
 >&2 date
 
-#mark directory of the script if necessary (i.e aligned.aug10)
-cur=`dirname $0`
-
-#get relative path for $1
-relinfile=`realpath --relative-to=$cur $1`
+#expand the path of $1
+relinfile=`realpath -s $1`
 dirname=`dirname $relinfile`
 base=`basename $1 .bam`
 
 #cd to current directory (aligned.aug10)
-cd $cur
+cd $dirname
 
 workdir=`pwd`
 logdir=$workdir/logs
@@ -284,15 +279,12 @@ blacklist=$extrasettings/%s.blacklist.bed
 i=$1 #filename must end with .narrowPeak
 >&2 echo "Input file is $i"
 
-#mark directory of the script if necessary (i.e macs2.narrow.aug10)
-cur=`dirname $0`
-
-#get relative path for $1
-relinfile=`realpath --relative-to=$cur $i`
+#expand the path for $1
+relinfile=`realpath -s $i`
 dirname=`dirname $relinfile`
 
 #cd to current directory (macs2.narrow.aug10)
-cd $cur
+cd $dirname
 
 for d in padded padded.fa repeat.region filtered blk_filtered; do
 if [ ! -d $d ]; then
@@ -381,15 +373,12 @@ peak_file=$1 #a narrowPeak file
 mbase=`basename $peak_file _peaks.narrowPeak`
 mdiscovery=random.%d/MEME_"$mbase"_shuf
 
-#mark directory of the script if necessary (i.e macs2.narrow.aug10)
-cur=`dirname $0`
-
-#get relative path for $peak_file
-relinfile=`realpath --relative-to=$cur $peak_file`
+#expand the path for $peak_file
+relinfile=`realpath -s $peak_file`
 dirname=`dirname $relinfile`
 
 #cd to current directory (macs2.narrow.aug10)
-cd $cur
+cd $dirname
 
 
 $pythonbin/python read.meme.py $mdiscovery
@@ -502,12 +491,13 @@ def generate_integrated_all_steps_sh(output=None):
 	script = """#!/bin/bash
 
 sample=$1
-cur=`dirname $0`
-relsample=`realpath --relative-to=$cur $sample`
+#expand the path for $sample
+relsample=`realpath -s $sample`
 dirname=`dirname $relsample`
 base=`basename $relsample _R1_001.fastq.gz`
 
-cd $cur
+cd $dirname
+
 echo "Submitting job 1..."
 jid1=$(sbatch ./integrated.sh $relsample)
 jid1=${jid1##* }
