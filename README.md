@@ -10,8 +10,7 @@ Once the package is installed, please see [USAGE.md](USAGE.md) about usage. Basi
 
 ## Basic Usage
 
-CutRunTools requires a JSON configuration file which specifies all that is needed to run an analysis. 
-A sample configuration file is below. 
+When first starting an analysis, CutRunTools requires a JSON configuration file (named `config.json`) to be written. This file specifies all that is needed to run an analysis. A sample configuration file is below. 
 
 ```json
 {
@@ -74,7 +73,9 @@ A sample configuration file is below.
 }
 ```
 
-Note the important settings above are: **adapterpath** (line 8), **bt2idx** (line 17); **genome_sequence** (line 18);
+The first 10-20 lines define the software paths for various sequencing tools. For each software, please note the directory to the binary executable (usually the `bin` directory, such as `/usr/bin`, `/usr/local/bin`, or sometimes it may depend on how softwares are installed on the cluster). For more information, refer to [INSTALL.md](INSTALL.md). 
+
+Next, the important settings to note are: **adapterpath** (line 8), **bt2idx** (line 17); **genome_sequence** (line 18);
 section **input/output**: **fastq_directory** (line 22), **workdir** (line 23), **fastq_sequence_length** (line 24),
 **organism_build** (line 25); section **cluster**: **email** (line 35).
 
@@ -195,3 +196,9 @@ The summary.tsv lists all the motif found by motif searching analysis. The files
 CUT&RUNTools allows users to obtain a single nucleotide resolution cut profile for a region of interest.
 
 For more details, please see [USAGE.md](USAGE.md).
+
+
+## Want to try?
+
+Download a small CUT&RUN experiment [qzhudfci/datasets/src](https://bitbucket.org/qzhudfci/datasets/src). This is GATA1 chr11 only.
+Follow along the instructions [INSTALL.md](INSTALL.md), [USAGE.md](USAGE.md).

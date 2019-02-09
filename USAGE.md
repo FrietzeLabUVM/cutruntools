@@ -1,8 +1,10 @@
 # CutRunTools usage
 
-## Basic Usage
+We provide a small CUT&RUN experiment [qzhudfci/datasets/src](https://bitbucket.org/qzhudfci/datasets/src) that new users can use to test drive our tool. This is GATA1 chr11 only. First put the R1_001 and R2_001 fastq files in a folder and note its path (in my case `/n/scratch2/qz64/Nan_18_aug23/Nan_run_19`). Then write a JSON configuration file (named `config.json`) as shown below.
 
-CutRunTools requires a JSON configuration file which specifies all that is needed to run an analysis. 
+## Defining a configuration file
+
+CutRunTools requires a JSON configuration file (named as `config.json`) which specifies all that is needed to run an analysis. 
 A sample configuration file is below. 
 
 ```json
@@ -66,11 +68,13 @@ A sample configuration file is below.
 }
 ```
 
-Note the important settings above are: **adapterpath** (line 8), **bt2idx** (line 17); **genome_sequence** (line 18);
+By now you should have followed INSTALL.md and successfully installed the prerequisites, so you can skip over lines regarding software installation paths.
+
+The specific settings applicable for a new analysis are: **adapterpath** (line 8), **bt2idx** (line 17); **genome_sequence** (line 18);
 section **input/output**: **fastq_directory** (line 22), **workdir** (line 23), **fastq_sequence_length** (line 24),
 **organism_build** (line 25); section **cluster**: **email** (line 35).
 
-*  `fastq_directory` is the directory containing paired-end CUT&RUN sequences (with _R1_001.fastq.gz and _R2_001.fastq.gz suffix). 
+*  `fastq_directory` is the directory containing paired-end CUT&RUN sequences (should contain _R1_001.fastq.gz and _R2_001.fastq.gz for each sample). 
 *  `organism_build` is one of supported genome assemblies: hg38, hg19, mm10, and mm9. 
 *  `adapterpath` contains Illumina Truseq3-PE adapter sequences (we provide them). 
 *  `genome_sequence` is the whole-genome **masked** sequence which matches with the appropriate organism build.
@@ -92,31 +96,31 @@ With the scripts created, we can next perform the analysis.
 Step 1. **Read trimming, alignment.** We suppose the `workdir` is defined as `/n/scratch2/qz64/workdir`
 ```bash
 cd /n/scratch2/qz64/workdir
-sbatch ./integrated.sh CR_BCL11A_W9_r1_S17_R1_001.fastq.gz
+sbatch ./integrated.sh GATA1_D7_30min_chr11_R2_001.fastq.gz
 ```
 The parameter is the fastq file. Even though we specify the _R1_001.fastq.gz, CutRunTools actually checks that both forward and reverse fastq files are present. Always use the _R1_001 of the pair as parameter of this command.
 
 Step 2. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size.
 ```bash
 cd aligned.aug10
-sbatch ./integrated.step2.sh CR_BCL11A_W9_r1_S17_aligned_reads.bam
+sbatch ./integrated.step2.sh GATA1_D7_30min_chr11_aligned_reads.bam
 ```
 
 Step 3. **Motif finding.** CutRunTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
 ```bash
 cd ../macs2.narrow.aug18
-sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
+sbatch ./integrate.motif.find.sh GATA1_D7_30min_chr11_aligned_reads_peaks.narrowPeak
 ```
 By default, CutRunTools keeps duplicate fragments. If instead users wish to use deduplicate version, 
 ```bash
 cd ../macs2.narrow.aug18.dedup
-sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
+sbatch ./integrate.motif.find.sh GATA1_D7_30min_chr11_aligned_reads_peaks.narrowPeak
 ```
 
 Step 4. **Motif footprinting.**
 ```bash
 cd ../macs2.narrow.aug18
-sbatch ./integrate.footprinting.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
+sbatch ./integrate.footprinting.sh GATA1_D7_30min_chr11_aligned_reads_peaks.narrowPeak
 ```
 Beautiful footprinting figures will be located in the directory `fimo.result`. Footprinting figures are created for every motif found by MEME-chip, but only the right motif (associated with TF) will have a proper looking shape. Users can scan through all the motifs' footprints.
 
