@@ -126,6 +126,8 @@ CUT&RUNTools generates several outputs including: 1) de novo motifs found by mot
 
 For example, suppose our sample is named "GATA1_D7_30min_S11". We can do the following to access each output.
 
+# De novo motif finding results
+
 ```bash
 cd macs2.narrow.aug18/random.10000
 ls -ltr
@@ -170,18 +172,23 @@ MOTIF_INDEX	MOTIF_SOURCE	MOTIF_ID	ALT_ID	CONSENSUS	WIDTH	SITES	E-VALUE	E-VALUE_S
 
 The file summary.tsv shows the list of motifs that are found by motif searching.
 
+Download the entire folder `MEME_GATA1_D7_30min_S11_aligned_reads_shuf`. Then go in and open `index.html` to see a comprehensive motif report.
+
+
+# Motif footprinting result
+
+CUT&RUNTools generate motif footprinting plot for each de novo motif that is found by the previous step.
+Motif footprinting results are located in `fimo.result` directory.
+
 ```bash
 pwd
 /n/scratch2/qz64/Nan_18_aug28_gata/macs2.narrow.aug18/random.10000/MEME_GATA1_HDP2_30min_S13_aligned_reads_shuf
 ```
 
-Next we access the motif footprinting figure.
 ```
-cd ../../
-cd fimo.result
+cd ../../fimo.result
 ls -ltr
 ```
-
 ```
 total 20
 drwxrwxr-x 38 qz64 qz64 4096 Dec  2 23:51 GATA1_D7_30min_S11_aligned_reads_peaks
@@ -191,7 +198,7 @@ drwxrwxr-x 19 qz64 qz64 4096 Dec  2 23:51 LRF_HDP2_30min_S15_aligned_reads_peaks
 drwxrwxr-x 43 qz64 qz64 4096 Dec  2 23:51 GATA1_HDP2_30min_S13_aligned_reads_peaks
 ```
 
-The fimo.result directory contains all the samples.
+The fimo.result directory is organized by samples. Within each, you will see the footprints organized by de novo motifs.
 
 ```
 cd GATA1_HDP2_30min_S13_aligned_reads_peaks/
@@ -210,7 +217,8 @@ fimo2.DREME-18.GTCAC     fimo2.DREME-2.CMCRCCC    fimo2.MEME-1.AGATAAGV
 fimo2.DREME-19.CCAATCGB  fimo2.DREME-3.TGAGTCAB   fimo2.MEME-2.GCAYBCTGGGAADYGTAGTYY
 fimo2.DREME-1.HGATAA     fimo2.DREME-4.AGATABS    fimo2.MEME-30.CYTCCCACAGC
 ```
-Within each sample, we see the results are organized by each motif. The ID of each motif corresponds to that in summary.tsv.
+The ID of each motif corresponds to that in the `summary.tsv` in previous step.
+Let us take a look at the motif footprint of HGATAA motif.
 
 ```bash
 cd fimo2.DREME-1.HGATAA
@@ -220,7 +228,7 @@ ls
 cisml.xml  fimo.bed  fimo.cuts.freq.txt  fimo.gff  fimo.html  fimo.lambda.txt  fimo.logratio.txt  fimo.png  fimo.postpr.txt  fimo.txt  fimo.xml
 ```
 
-The file fimo.png contains the motif footprinting figure. The file fimo.logratio.txt shows the posterior binding log-odds score, written in the same order as the motif sites specified in fimo.bed. We can sort all the sites by binding probability score by:
+**The file fimo.png contains the motif footprinting figure. The file fimo.logratio.txt shows the posterior binding log-odds score for all motif sites (as shown in fimo.bed file). We can sort all the sites by binding log odds score by the following.**
 
 ```
 paste fimo.bed fimo.logratio.txt|sort -t $'\t' -g -k7 -r|less
@@ -245,6 +253,7 @@ chr19   10727908        10727914        1-HGATAA-1-chr19        34.5    -       
 chr11   27442450        27442456        1-HGATAA-3-chr11        34.5    +       115.467998429997
 chr6    3251929 3251935 1-HGATAA-1-chr6 34.5    -       114.091191286861
 ```
+**The last column above shows the binding log odds score.
 
 In summary, the important output files are located below:
 ```
