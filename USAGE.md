@@ -126,7 +126,7 @@ CUT&RUNTools generates several outputs including: 1) de novo motifs found by mot
 
 For example, suppose our sample is named "GATA1_D7_30min_S11". We can do the following to access each output.
 
-# De novo motif finding results
+### De novo motif finding results
 
 ```bash
 cd macs2.narrow.aug18/random.10000
@@ -175,10 +175,11 @@ The file summary.tsv shows the list of motifs that are found by motif searching.
 Download the entire folder `MEME_GATA1_D7_30min_S11_aligned_reads_shuf`. Then go in and open `index.html` to see a comprehensive motif report.
 
 
-# Motif footprinting result
+### Motif footprinting result
 
 CUT&RUNTools generate motif footprinting plot for each de novo motif that is found by the previous step.
 Motif footprinting results are located in `fimo.result` directory.
+
 
 ```bash
 pwd
@@ -253,7 +254,7 @@ chr19   10727908        10727914        1-HGATAA-1-chr19        34.5    -       
 chr11   27442450        27442456        1-HGATAA-3-chr11        34.5    +       115.467998429997
 chr6    3251929 3251935 1-HGATAA-1-chr6 34.5    -       114.091191286861
 ```
-**The last column above shows the binding log odds score.
+**The last column above shows the binding log odds score.**
 
 In summary, the important output files are located below:
 ```
