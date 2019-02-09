@@ -189,3 +189,9 @@ Briefly, CUT&RUNTools will generate the following directory structure in the out
 Files are denoted by "++", and directories are denoted by "+".
 Here the sample name is called GATA1_HDP2_30min_S13.
 The summary.tsv lists all the motif found by motif searching analysis. The files within "fimo2..." folder shows the motif footprinting figure (.png), the motif sites for the motif (.bed), and the logratio binding scores at these sites (.logratio.txt).
+
+### Single locus cut profile
+
+CUT&RUNTools allows users to obtain a single nucleotide resolution cut profile for a region of interest.
+
+For more details, please see [USAGE.md](USAGE.md).
