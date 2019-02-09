@@ -229,10 +229,15 @@ ls
 cisml.xml  fimo.bed  fimo.cuts.freq.txt  fimo.gff  fimo.html  fimo.lambda.txt  fimo.logratio.txt  fimo.png  fimo.postpr.txt  fimo.txt  fimo.xml
 ```
 
-**The file fimo.png contains the motif footprinting figure. The file fimo.logratio.txt shows the posterior binding log-odds score for all motif sites (as shown in fimo.bed file). We can sort all the sites by binding log odds score by the following.**
+**The file fimo.png contains the motif footprinting figure.**
+
+![HGATAA footprint](sample.result.gata1.png)
+
+**The file fimo.logratio.txt shows the posterior binding log-odds score for all motif sites (as shown in fimo.bed file). We can sort all the sites by binding log odds score by the following.**
 
 ```
-paste fimo.bed fimo.logratio.txt|sort -t $'\t' -g -k7 -r|less
+paste fimo.bed fimo.logratio.txt|sort -t $'\t' -g -k7 -r > fimo.logratio.sorted.bed
+cat fimo.logratio.sorted.bed
 ```
 ```
 chr19   51161579        51161585        1-HGATAA-2-chr19        34.5    +       210.558477451988
@@ -307,3 +312,5 @@ ls -ltr
 ```
 
 Many of the files in ths folder are intermediary files and can be ignored. The important files are the three bigwigs (`.frag.ends.R1.bw`, `.frag.ends.R2.bw`, and `.frag.ends.bw`). **The R1 and R2 bigwigs designate strand-specific cut profiles that were created. The `frag.ends.bw` is one that combines cuts from both strands.** The bigwigs can be displayed in any visualization tools such as IGV or UCSC genome browser.
+
+![Cut profile visualized with UCSC browser](single.locus.visualized.UCSC.png)
