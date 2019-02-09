@@ -526,6 +526,68 @@ jid6=${jid6##* }
 	if output is not None:
 		outp.close()
 
+
+def generate_single_locus_script_sh(config, dedup=False, output=None):
+	outp = sys.stdout
+	if output is not None:
+		fw = open(output, "w")
+		outp = fw
+
+	if dedup:
+		samtools_flags = "-f 3 -F 4 -F 8 -F 1024"
+	else:
+		samtools_flags = "-f 3 -F 4 -F 8"
+
+	script = """#!/bin/bash
+
+region=$1
+bamfile=$2
+outdir=$3
+chromsizedir=`dirname %s`
+chromsizefile=$chromsizedir/%s.chrom.sizes
+pythonbin=%s
+samtoolsbin=%s
+bedtoolsbin=%s
+bedopsbin=%s
+extratoolsbin=%s
+samtoolsflags="%s"
+
+regionname=`echo $region|sed "s/:/-/g"`
+basename=`basename $bamfile .bam`
+newbamfile="$basename"-"$regionname".bam
+newbase=`basename $newbamfile .bam`
+
+if [ ! -d $outdir ]; then
+mkdir $outdir
+fi
+$samtoolsbin/samtools view -bh $samtoolsflags $bamfile "$region" > $outdir/$newbamfile
+$samtoolsbin/samtools index $outdir/$newbamfile
+$samtoolsbin/samtools view -b $outdir/$newbamfile|$samtoolsbin/samtools sort -O bam -n - -T tmp.test|$bedtoolsbin/bedtools bamtobed -i stdin -bedpe > $outdir/"$newbase".frag.ends.txt
+
+$pythonbin/python check_coordinate.py $chromsizefile $outdir/"$newbase".frag.ends.txt > $outdir/"$newbase".frag.ends.checked.txt
+
+$pythonbin/python quantify_separate.py $outdir/"$newbase".frag.ends.checked.txt $outdir/"$newbase".frag.ends.R1.bed $outdir/"$newbase".frag.ends.R2.bed
+$bedopsbin/sort-bed $outdir/"$newbase".frag.ends.R1.bed > $outdir/"$newbase".frag.ends.R1.sorted.bed
+$bedopsbin/sort-bed $outdir/"$newbase".frag.ends.R2.bed > $outdir/"$newbase".frag.ends.R2.sorted.bed
+$bedtoolsbin/groupBy -i $outdir/"$newbase".frag.ends.R1.sorted.bed -g 1,2,3 -c 2 -o count > $outdir/"$newbase".frag.ends.R1.bdg
+$bedtoolsbin/groupBy -i $outdir/"$newbase".frag.ends.R2.sorted.bed -g 1,2,3 -c 2 -o count > $outdir/"$newbase".frag.ends.R2.bdg
+$extratoolsbin/bedGraphToBigWig $outdir/"$newbase".frag.ends.R1.bdg $chromsizefile $outdir/"$newbase".frag.ends.R1.bw
+$extratoolsbin/bedGraphToBigWig $outdir/"$newbase".frag.ends.R2.bdg $chromsizefile $outdir/"$newbase".frag.ends.R2.bw
+
+$pythonbin/python quantify.py $outdir/"$newbase".frag.ends.checked.txt $outdir/"$newbase".frag.ends.bed
+$bedopsbin/sort-bed $outdir/"$newbase".frag.ends.bed > $outdir/"$newbase".frag.ends.sorted.bed
+$bedtoolsbin/groupBy -i $outdir/"$newbase".frag.ends.sorted.bed -g 1,2,3 -c 2 -o count > $outdir/"$newbase".frag.ends.bdg
+$extratoolsbin/bedGraphToBigWig $outdir/"$newbase".frag.ends.bdg $chromsizefile $outdir/"$newbase".frag.ends.bw
+
+""" % (config["genome_sequence"], config["input/output"]["organism_build"], config["pythonbin"], config["samtoolsbin"], config["bedtoolsbin"], \
+config["bedopsbin"], config["extratoolsbin"], samtools_flags)
+
+	outp.write(script + "\n")
+	if output is not None:
+		outp.close()
+
+
+
 def write_length_file(n, length):
 	fw = open(n, "w")
 	fw.write(str(length) + "\n")
@@ -558,6 +620,8 @@ if __name__=="__main__":
 	generate_integrated_footprinting_sh(config, dedup=False, output=outdir+"/macs2.narrow.aug18/integrate.footprinting.sh")
 	generate_integrated_footprinting_sh(config, dedup=True, output=outdir+"/macs2.narrow.aug18.dedup/integrate.footprinting.sh")
 	generate_integrated_all_steps_sh(output=outdir+"/integrated.all.steps.sh")
+	generate_single_locus_script_sh(config, dedup=False, output=outdir+"/macs2.narrow.aug18/get_cuts_single_locus.sh")
+	generate_single_locus_script_sh(config, dedup=True, output=outdir+"/macs2.narrow.aug18.dedup/get_cuts_single_locus.sh")
 
 	make_executable(outdir+"/integrated.sh")
 	make_executable(outdir+"/integrated.all.steps.sh")
@@ -566,16 +630,24 @@ if __name__=="__main__":
 	make_executable(outdir+"/macs2.narrow.aug18.dedup/integrate.motif.find.sh")
 	make_executable(outdir+"/macs2.narrow.aug18/integrate.footprinting.sh")
 	make_executable(outdir+"/macs2.narrow.aug18.dedup/integrate.footprinting.sh")
+	make_executable(outdir+"/macs2.narrow.aug18/get_cuts_single_locus.sh")
+	make_executable(outdir+"/macs2.narrow.aug18.dedup/get_cuts_single_locus.sh")
 
 	shutil.copyfile("%s/macs2.narrow.aug18/filter.py" % curpath, outdir+"/macs2.narrow.aug18/filter.py")
 	shutil.copyfile("%s/macs2.narrow.aug18/fix_sequence.py" % curpath, outdir+"/macs2.narrow.aug18/fix_sequence.py")
 	shutil.copyfile("%s/macs2.narrow.aug18/read.meme.py" % curpath, outdir+"/macs2.narrow.aug18/read.meme.py")
 	shutil.copyfile("%s/macs2.narrow.aug18/run_centipede_parker.R" % curpath, outdir+"/macs2.narrow.aug18/run_centipede_parker.R")
+	shutil.copyfile("%s/quantify.py" % curpath, outdir+"/macs2.narrow.aug18/quantify.py")
+	shutil.copyfile("%s/quantify_separate.py" % curpath, outdir+"/macs2.narrow.aug18/quantify_separate.py")
+	shutil.copyfile("%s/check_coordinate.py" % curpath, outdir+"/macs2.narrow.aug18/check_coordinate.py")
 
 	shutil.copyfile("%s/macs2.narrow.aug18/filter.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/filter.py")
 	shutil.copyfile("%s/macs2.narrow.aug18/fix_sequence.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/fix_sequence.py")
 	shutil.copyfile("%s/macs2.narrow.aug18/read.meme.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/read.meme.py")
 	shutil.copyfile("%s/macs2.narrow.aug18/run_centipede_parker.R" % curpath, outdir+"/macs2.narrow.aug18.dedup/run_centipede_parker.R")
+	shutil.copyfile("%s/quantify.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/quantify.py")
+	shutil.copyfile("%s/quantify_separate.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/quantify_separate.py")
+	shutil.copyfile("%s/check_coordinate.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/check_coordinate.py")
 
 	shutil.copyfile(sys.argv[1], outdir+"/config.json")
 
