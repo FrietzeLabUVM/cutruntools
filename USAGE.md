@@ -120,13 +120,13 @@ sbatch ./integrate.footprinting.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narro
 ```
 Beautiful footprinting figures will be located in the directory `fimo.result`. Footprinting figures are created for every motif found by MEME-chip, but only the right motif (associated with TF) will have a proper looking shape. Users can scan through all the motifs' footprints.
 
-## Outputs
+# Outputs
 
 CUT&RUNTools generates several outputs including: 1) de novo motifs found by motif searching, 2) aggregate motif footprinting figure, 3) individual motif site binding probability score.
 
 For example, suppose our sample is named "GATA1_D7_30min_S11". We can do the following to access each output.
 
-### De novo motif finding results
+## De novo motif finding results
 
 ```bash
 cd macs2.narrow.aug18/random.10000
@@ -175,7 +175,7 @@ The file summary.tsv shows the list of motifs that are found by motif searching.
 Download the entire folder `MEME_GATA1_D7_30min_S11_aligned_reads_shuf`. Then go in and open `index.html` to see a comprehensive motif report.
 
 
-### Motif footprinting result
+## Motif footprinting result and binding log odds scores
 
 CUT&RUNTools generate motif footprinting plot for each de novo motif that is found by the previous step.
 Motif footprinting results are located in `fimo.result` directory.
@@ -199,7 +199,7 @@ drwxrwxr-x 19 qz64 qz64 4096 Dec  2 23:51 LRF_HDP2_30min_S15_aligned_reads_peaks
 drwxrwxr-x 43 qz64 qz64 4096 Dec  2 23:51 GATA1_HDP2_30min_S13_aligned_reads_peaks
 ```
 
-The fimo.result directory is organized by samples. Within each, you will see the footprints organized by de novo motifs.
+The `fimo.result` directory is organized by samples. Within each, you will see the footprints organized by de novo motifs.
 
 ```
 cd GATA1_HDP2_30min_S13_aligned_reads_peaks/
