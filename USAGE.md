@@ -253,3 +253,45 @@ macs2.narrow.aug18/fimo.result/GATA1_HDP2_30min_S13_aligned_reads_peaks/fimo2.DR
 macs2.narrow.aug18/fimo.result/GATA1_HDP2_30min_S13_aligned_reads_peaks/fimo2.DREME-1.HGATAA/fimo.logratio.txt
 macs2.narrow.aug18/fimo.result/GATA1_HDP2_30min_S13_aligned_reads_peaks/fimo2.DREME-1.HGATAA/fimo.png
 ```
+
+## Single locus cut profile
+
+This function requires a bam file that CUT&RUNTools created (preferrably a bam in aligned.aug18/dup.marked.120bp folder), and a region of interest (in the format chr11:5245029-5303165).
+
+The script that is needed is get_cuts_single_locus.sh. There is one copy of this in macs2.narrow.aug18, and another copy in macs2.narrow.aug18.dedup.
+Use the former one if you wish to keep duplicates in the bam file (and in the cut profile), or the latter one if you wish to remove duplicates.
+
+```
+#construct single locus profile keeping duplicates in bam
+cd macs2.narrow.aug18/
+./get_cuts_single_locus.sh chr11:5245029-5303165 ../aligned.aug10/dup.marked.120bp/GATA1_D7_30min_chr11_aligned_reads.bam single.locus
+```
+Here, the 3 parameters required are: region, bam file path, output directory. single.locus is the output directory.
+
+Once finished, let us check the outputs.
+
+```
+cd single.locus
+ls -ltr
+```
+
+```
+-rw-rw-r-- 1 qz64 qz64 306944 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.txt
+-rw-rw-r-- 1 qz64 qz64 144936 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.sorted.bed
+-rw-rw-r-- 1 qz64 qz64  72468 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.R2.sorted.bed
+-rw-rw-r-- 1 qz64 qz64  53822 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.R2.bw
+-rw-rw-r-- 1 qz64 qz64  72468 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.R2.bed
+-rw-rw-r-- 1 qz64 qz64  34174 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.R2.bdg
+-rw-rw-r-- 1 qz64 qz64  72468 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.R1.sorted.bed
+-rw-rw-r-- 1 qz64 qz64  45585 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.R1.bw
+-rw-rw-r-- 1 qz64 qz64  72468 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.R1.bed
+-rw-rw-r-- 1 qz64 qz64  33738 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.R1.bdg
+-rw-rw-r-- 1 qz64 qz64 306944 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.checked.txt
+-rw-rw-r-- 1 qz64 qz64  58596 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.bw
+-rw-rw-r-- 1 qz64 qz64 144936 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.bed
+-rw-rw-r-- 1 qz64 qz64  60309 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.frag.ends.bdg
+-rw-rw-r-- 1 qz64 qz64   2944 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.bam.bai
+-rw-rw-r-- 1 qz64 qz64 188799 Feb  8 22:41 GATA1_D7_30min_chr11_aligned_reads-chr11-5245029-5303165.bam
+```
+
+Many of the files in ths folder are intermediary files and can be ignored. The important files are the three bigwigs (*.frag.ends.R1.bw, *.frag.ends.R2.bw, and *.frag.ends.bw) The R1 and R2 bigwigs designate strand-specific cut profiles. The frag.ends.bw is one that combines cuts from both strands. The bigwigs can be displayed in any visualization tools such as IGV or UCSC genome browser.
