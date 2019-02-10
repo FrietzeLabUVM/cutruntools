@@ -76,8 +76,8 @@ When first starting an analysis, CutRunTools requires a JSON configuration file 
 ```
 The first 10-20 lines define the software paths for various sequencing tools. For each software, please note the directory to the binary executable (usually the `bin` directory, such as `/usr/bin`, `/usr/local/bin`, or sometimes it may depend on how softwares are installed on the cluster). For more information, refer to [INSTALL.md](INSTALL.md). 
 
-*Configuring Python and Perl*: The version of Python (indicated by `pythonbin`) needs to be consistent with the version of Python used to install MACS2, and version used to install make_cut_matrix (`makecutmatrixbin`). 
-Use `/n/app/python/2.7.12/bin` for `pythonbin`. Similarly for Perl (`perlbin`) and meme-chip (`memebin`). The version of Perl used to install meme should be used for`perlbin`.
+*Configuring Python and Perl*: The version of Python that is indicated in `pythonbin` field should be consistent with the version of Python used to install MACS2, and version used to install make_cut_matrix (`makecutmatrixbin`). 
+Similarly for Perl (`perlbin`) and meme-chip (`memebin`). The version of Perl used to install meme should be used for `perlbin` field.
 
 Next, check that the software prerequisites are met.
 ```bash
