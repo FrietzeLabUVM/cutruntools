@@ -34,6 +34,7 @@ trimmomaticjarfile=%s
 adapterpath=%s
 bowtie2bin=%s
 samtoolsbin=%s
+javabin=%s
 
 bt2idx=%s
 kseqbin=%s
@@ -63,7 +64,7 @@ fi
 done
 
 """ % (config["trimmomaticbin"], config["trimmomaticjarfile"], config["adapterpath"], 
-	config["bowtie2bin"], config["samtoolsbin"], 
+	config["bowtie2bin"], config["samtoolsbin"], config["javabin"],
 	config["bt2idx"], config["kseqbin"])
 
 	bowtie2_org = config["input/output"]["organism_build"]
@@ -75,7 +76,7 @@ done
 #good version
 >&2 echo "Trimming file $base ..."
 >&2 date
-java -jar $trimmomaticbin/$trimmomaticjarfile PE -threads 1 -phred33 $dirname/"$base"_R1_001.fastq.gz $dirname/"$base"_R2_001.fastq.gz $trimdir/"$base"_1.paired.fastq.gz $trimdir/"$base"_1.unpaired.fastq.gz $trimdir/"$base"_2.paired.fastq.gz $trimdir/"$base"_2.unpaired.fastq.gz ILLUMINACLIP:$adapterpath/Truseq3.PE.fa:2:15:4:4:true LEADING:20 TRAILING:20 SLIDINGWINDOW:4:15 MINLEN:25
+$javabin/java -jar $trimmomaticbin/$trimmomaticjarfile PE -threads 1 -phred33 $dirname/"$base"_R1_001.fastq.gz $dirname/"$base"_R2_001.fastq.gz $trimdir/"$base"_1.paired.fastq.gz $trimdir/"$base"_1.unpaired.fastq.gz $trimdir/"$base"_2.paired.fastq.gz $trimdir/"$base"_2.unpaired.fastq.gz ILLUMINACLIP:$adapterpath/Truseq3.PE.fa:2:15:4:4:true LEADING:20 TRAILING:20 SLIDINGWINDOW:4:15 MINLEN:25
 
 >&2 echo "Second stage trimming $base ..."
 >&2 date
@@ -116,10 +117,13 @@ def generate_integrated_step2_sh(config, output=None):
 """ % (config["cluster"]["step_process_bam"]["time_limit"], config["cluster"]["step_process_bam"]["queue"], 
 	config["cluster"]["step_process_bam"]["memory"], config["cluster"]["email"])
 
+	p_pythonbase = config["pythonbin"].rstrip("/").rstrip("/bin")
+
 	path = """picardbin=%s
 picardjarfile=%s
 samtoolsbin=%s
 macs2bin=%s
+javabin=%s
 extratoolsbin=%s
 extrasettings=%s
 chromsizedir=`dirname %s`
@@ -127,11 +131,17 @@ macs2pythonlib=%s
 
 pythonlib=`echo $PYTHONPATH | tr : "\\n" | grep -v $macs2pythonlib | paste -s -d:`
 unset PYTHONPATH
-export PYTHONPATH=$pythonlib:$macs2pythonlib
+export PYTHONPATH=$macs2pythonlib:$pythonlib
+
+pythonldlibrary=%s
+ldlibrary=`echo $LD_LIBRARY_PATH | tr : "\\n" | grep -v $pythonldlibrary | paste -s -d:`
+unset LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$pythonldlibrary:$ldlibrary
 
 """ % (config["picardbin"], config["picardjarfile"], config["samtoolsbin"], 
-	config["macs2bin"], config["extratoolsbin"], config["extrasettings"], 
-	config["genome_sequence"], config["macs2pythonlib"])
+	config["macs2bin"], config["javabin"],
+	config["extratoolsbin"], config["extrasettings"], 
+	config["genome_sequence"], config["macs2pythonlib"], p_pythonbase + "/lib")
 
 	scripts =""">&2 echo "Input parameters are: $1"
 >&2 date
@@ -155,18 +165,18 @@ done
 
 >&2 echo "Sorting bam... ""$base".bam
 >&2 date
-java -jar $picardbin/$picardjarfile SortSam \
+$javabin/java -jar $picardbin/$picardjarfile SortSam \
 INPUT=$dirname/"$base".bam OUTPUT=sorted/"$base".bam SORT_ORDER=coordinate
 
 >&2 echo "Marking duplicates... ""$base".bam
 >&2 date
-java -jar $picardbin/$picardjarfile MarkDuplicates \
+$javabin/java -jar $picardbin/$picardjarfile MarkDuplicates \
 INPUT=sorted/"$base".bam OUTPUT=dup.marked/"$base".bam \
 METRICS_FILE=metrics."$base".txt
 
 >&2 echo "Removing duplicates... ""$base".bam
 >&2 date
-java -jar $picardbin/$picardjarfile MarkDuplicates \
+$javabin/java -jar $picardbin/$picardjarfile MarkDuplicates \
 INPUT=sorted/"$base".bam OUTPUT=dedup/"$base".bam \
 METRICS_FILE=metrics."$base".txt \
 REMOVE_DUPLICATES=true
@@ -272,6 +282,7 @@ def generate_integrated_motif_find_sh(config, output=None):
 bedopsbin=%s
 bedtoolsbin=%s
 pythonbin=%s
+perlbin=%s
 genome_sequence=%s
 extrasettings=%s
 blacklist=$extrasettings/%s.blacklist.bed
@@ -297,7 +308,7 @@ fname=`basename $i _peaks.narrowPeak`
 peak=$fname"_peaks.narrowPeak"
 summit=$fname"_summits.bed"
 summitfa=$fname"_summits_padded.fa"
-""" % (config["memebin"], config["bedopsbin"], config["bedtoolsbin"], config["pythonbin"], config["genome_sequence"], config["extrasettings"], config["input/output"]["organism_build"])
+""" % (config["memebin"], config["bedopsbin"], config["bedtoolsbin"], config["pythonbin"], config["perlbin"], config["genome_sequence"], config["extrasettings"], config["input/output"]["organism_build"])
 
 	scripts2 = """>&2 echo "Get filtered peaks..."
 $bedopsbin/bedops --range %d -u $workdir/$summit > padded/$summit
@@ -384,6 +395,8 @@ cd $dirname
 $pythonbin/python read.meme.py $mdiscovery
 """ % (config["pythonbin"], config["motif_finding"]["num_peaks"])
 
+	p_pythonbase = config["pythonbin"].rstrip("/").rstrip("/bin")
+
 	scripts2 = """
 memebin=%s
 bedopsbin=%s
@@ -393,6 +406,11 @@ samtoolsbin=%s
 makecutmatrixbin=%s
 Rscriptbin=%s
 extrasettings=%s
+
+pythonldlibrary=%s
+ldlibrary=`echo $LD_LIBRARY_PATH | tr : "\\n" | grep -v $pythonldlibrary | paste -s -d:`
+unset LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$pythonldlibrary:$ldlibrary
 
 p=%.5f
 motif_dir=$mdiscovery/motifs #a directory containing a list of *.meme files
@@ -410,7 +428,7 @@ cat $workdir/$dir/"$base".narrowPeak | grep -v -e "chrM" | $bedopsbin/sort-bed -
 """ % (config["memebin"], config["bedopsbin"], config["bedtoolsbin"], 
 	config["genome_sequence"], config["samtoolsbin"], 
 	config["makecutmatrixbin"], config["Rscriptbin"],
-	config["extrasettings"], 
+	config["extrasettings"], p_pythonbase + "/lib", 
 	config["motif_finding"]["motif_scanning_pval"], 
 	config["input/output"]["organism_build"])
 

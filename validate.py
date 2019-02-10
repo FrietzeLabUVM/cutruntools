@@ -54,6 +54,10 @@ if __name__=="__main__":
 		sys.exit(1)
 	if not check_program_exists(config["memebin"], "meme-chip"):
 		sys.exit(1)
+	if not check_program_exists(config["perlbin"], "perl"):
+		sys.exit(1)
+	if not check_program_exists(config["javabin"], "java"):
+		sys.exit(1)
 
 	if not check_program_exists(config["bedopsbin"], "bedops"):
 		sys.exit(1)
@@ -109,24 +113,51 @@ if __name__=="__main__":
 		os.system("%s/Rscript --version" % config["Rscriptbin"])
 		print "======================Testing python...======================"
 		os.system("%s/python --version" % config["pythonbin"])
+		print "======================Testing perl...======================"
+		os.system("%s/perl -version" % config["perlbin"])
+		print "======================Testing java...======================"
+		os.system("%s/java -version" % config["javabin"])
 		print "======================Testing trimmomatic...======================"
-		os.system("java -jar %s/%s -version" % (config["trimmomaticbin"], config["trimmomaticjarfile"]))
+		os.system("%s/java -jar %s/%s -version" % (config["javabin"], config["trimmomaticbin"], config["trimmomaticjarfile"]))
 		print "======================Testing bowtie2...======================"
 		os.system("%s/bowtie2 --version" % config["bowtie2bin"])
 		print "======================Testing samtools...======================"
 		os.system("%s/samtools --version" % config["samtoolsbin"])
 		print "======================Testing picard...======================"
-		os.system("java -jar %s/%s -h" % (config["picardbin"], config["picardjarfile"]))
+		os.system("%s/java -jar %s/%s -h" % (config["javabin"], config["picardbin"], config["picardjarfile"]))
 		print "======================Testing macs2...======================"
-		os.system("pythonlib=`echo $PYTHONPATH | tr : \\n | grep -v %s | paste -s -d:` && unset $PYTHONPATH && export PYTHONPATH=$pythonlib:%s && %s/macs2 --version" % (config["macs2pythonlib"], config["macs2pythonlib"], config["macs2bin"]))
+		p_pythonbin = config["pythonbin"]
+		p_pythonbin_suffix = p_pythonbin.rstrip("/").rstrip("/bin")
+		p_pythoninclude = p_pythonbin_suffix + "/include"
+		p_pythonlib = p_pythonbin_suffix + "/lib"
+
+		#cmd1 = "pythonpath=`echo $PATH | tr \":\" \"\\n\" | grep -v %s | paste -s -d:` && unset PATH && export PATH=%s:$pythonpath" % (p_pythonbin, p_pythonbin)
+		#cmd2 = "pythoninclude=`echo $PATH | tr \":\" \"\\n\" | grep -v %s | paste -s -d:` && unset PATH && export PATH=%s:$pythoninclude" % (p_pythoninclude, p_pythoninclude)
+		cmd3 = "ldlibrary=`echo $LD_LIBRARY_PATH | tr \":\" \"\\n\" | grep -v %s | paste -s -d:` && unset LD_LIBRARY_PATH && export LD_LIBRARY_PATH=%s:$ldlibrary" % (p_pythonlib, p_pythonlib)
+		cmd4 = "pythonlib=`echo $PYTHONPATH | tr \":\" \"\\n\" | grep -v %s | paste -s -d:` && unset PYTHONPATH && export PYTHONPATH=%s:$pythonlib" % (config["macs2pythonlib"], config["macs2pythonlib"])
+		cmd5 = "%s/macs2 --version" % config["macs2bin"]
+		all_cmd = " && ".join([cmd3, cmd4, cmd5])
+		#print all_cmd
+		os.system(all_cmd)
+		#os.system("pythonlib=`echo $PYTHONPATH | tr : \\n | grep -v %s | paste -s -d:` && unset $PYTHONPATH && export PYTHONPATH=%s:$pythonlib && %s/macs2 --version" % (config["macs2pythonlib"], config["macs2pythonlib"], config["macs2bin"]))
 		print "======================Testing kseq...======================"
 		os.system("%s/kseq_test --help" % config["kseqbin"])
 		print "======================Testing meme...======================"
 		os.system("%s/meme -version" % config["memebin"])
+		print "======================Testing meme-chip...======================"
+		os.system("%s/meme-chip -version" % (config["memebin"]))
 		print "======================Testing bedops...======================"
 		os.system("%s/bedops --version" % config["bedopsbin"])
 		print "======================Testing bedtools...======================"
 		os.system("%s/bedtools --version" % config["bedtoolsbin"])
 		print "======================Testing make_cut_matrix...======================"
-		os.system("%s/make_cut_matrix --version" % config["makecutmatrixbin"])
+		#cmd1 = "pythonpath=`echo $PATH | tr \":\" \"\\n\" | grep -v %s | paste -s -d:` && unset PATH && export PATH=%s:$pythonpath" % (p_pythonbin, p_pythonbin)
+		#cmd2 = "pythoninclude=`echo $PATH | tr \":\" \"\\n\" | grep -v %s | paste -s -d:` && unset PATH && export PATH=%s:$pythoninclude" % (p_pythoninclude, p_pythoninclude)
+		cmd3 = "ldlibrary=`echo $LD_LIBRARY_PATH | tr \":\" \"\\n\" | grep -v %s | paste -s -d:` && unset LD_LIBRARY_PATH && export LD_LIBRARY_PATH=%s:$ldlibrary" % (p_pythonlib, p_pythonlib)
+		#cmd4 = "pythonlib=`echo $PYTHONPATH | tr \":\" \"\\n\" | grep -v %s | paste -s -d:` && unset PYTHONPATH && export PYTHONPATH=%s:$pythonlib" % (config["macs2pythonlib"], config["macs2pythonlib"])
+		cmd5 = "%s/make_cut_matrix --version" % config["makecutmatrixbin"]
+		all_cmd = " && ".join([cmd3, cmd5])
+		#print all_cmd
+		os.system(all_cmd)
+		#os.system("%s/make_cut_matrix --version" % config["makecutmatrixbin"])
 
