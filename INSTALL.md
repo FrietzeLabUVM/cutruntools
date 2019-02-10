@@ -116,8 +116,7 @@ To check if the paths are correct and if the softwares in these paths indeed wor
 ./validate.py config.json --ignore-input-output --software
 ```
 
-*Configuring Python (`pythonbin` field) and Perl (`perlbin` field)*
-
+### Configuring Python and Perl, `pythonbin` and `perlbin` fields
 The version of Python (indicated by `pythonbin`) needs to be consistent with the version of Python used to install MACS2, and version used to install make_cut_matrix (`makecutmatrixbin`). 
 To confirm this, on our system, we enter
 ```bash
@@ -134,8 +133,7 @@ head -n 1 /home/qz64/meme/bin/meme-chip
 ```
 Use `/n/app/perl/5.24.0/bin` as value for `perlbin` in `config.json`.
 
-*Configuring MEME, XML/Simple.pm not found*
-
+### Configuring MEME, XML/Simple.pm not found
 Validate script may flag an error with MEME installation: XML/Simple.pm is not found.
 You may encounter this error if the XML PERL module is installed to a custom directory (i.e. home rather than in `/usr/` or `/usr/local`). 
 If this is the case, the solution is to set up the Perl library environment variables.
