@@ -11,6 +11,8 @@ A sample configuration file is below.
 {
 	"Rscriptbin": "/n/app/R/3.3.3/bin",
 	"pythonbin": "/n/app/python/2.7.12/bin",
+	"perlbin": "/n/app/perl/5.24.0/bin",
+	"javabin": "/n/app/java/jdk-1.8u112/bin",
 	"trimmomaticbin": "/n/app/trimmomatic/0.36/bin",
 	"trimmomaticjarfile": "trimmomatic-0.36.jar",
 	"bowtie2bin": "/n/app/bowtie2/2.2.9/bin",
@@ -70,11 +72,12 @@ A sample configuration file is below.
 
 By now you should have followed INSTALL.md and successfully installed the prerequisites, so you can skip over lines regarding software installation paths.
 
-The specific settings applicable for a new analysis are: **adapterpath** (line 8), **bt2idx** (line 17); **genome_sequence** (line 18);
+The specific settings in `config.json` applicable for a new analysis are: **adapterpath** (line 8), **bt2idx** (line 17); **genome_sequence** (line 18);
 section **input/output**: **fastq_directory** (line 22), **workdir** (line 23), **fastq_sequence_length** (line 24),
 **organism_build** (line 25); section **cluster**: **email** (line 35).
 
 *  `fastq_directory` is the directory containing paired-end CUT&RUN sequences (should contain _R1_001.fastq.gz and _R2_001.fastq.gz for each sample). 
+*  `workdir` is the output directory, where results are stored.
 *  `organism_build` is one of supported genome assemblies: hg38, hg19, mm10, and mm9. 
 *  `adapterpath` contains Illumina Truseq3-PE adapter sequences (we provide them). 
 *  `genome_sequence` is the whole-genome **masked** sequence which matches with the appropriate organism build.

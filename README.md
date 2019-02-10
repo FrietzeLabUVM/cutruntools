@@ -16,6 +16,8 @@ When first starting an analysis, CutRunTools requires a JSON configuration file 
 {
 	"Rscriptbin": "/n/app/R/3.3.3/bin",
 	"pythonbin": "/n/app/python/2.7.12/bin",
+	"perlbin": "/n/app/perl/5.24.0/bin",
+	"javabin": "/n/app/java/jdk-1.8u112/bin",
 	"trimmomaticbin": "/n/app/trimmomatic/0.36/bin",
 	"trimmomaticjarfile": "trimmomatic-0.36.jar",
 	"bowtie2bin": "/n/app/bowtie2/2.2.9/bin",
@@ -72,17 +74,33 @@ When first starting an analysis, CutRunTools requires a JSON configuration file 
 	}
 }
 ```
-
 The first 10-20 lines define the software paths for various sequencing tools. For each software, please note the directory to the binary executable (usually the `bin` directory, such as `/usr/bin`, `/usr/local/bin`, or sometimes it may depend on how softwares are installed on the cluster). For more information, refer to [INSTALL.md](INSTALL.md). 
 
-Next, the important settings to note are: **adapterpath** (line 8), **bt2idx** (line 17); **genome_sequence** (line 18);
+The version of Python (indicated by `pythonbin`) needs to be consistent with the version of Python used to install MACS2, and version used to install make_cut_matrix (`makecutmatrixbin`). To confirm that this is the case:
+```bash
+head -n 1 /n/app/macs2/2.1.1.20160309/bin/macs2
+#!/n/app/python/2.7.12/bin/python
+head -n 1 /home/qz64/.local/bin/make_cut_matrix
+#!/n/app/python/2.7.12/bin/python
+```
+Use `/n/app/python/2.7.12/bin` for `pythonbin`. Similarly for Perl (`perlbin`) and meme-chip (`memebin`). Version of Perl used to install meme should be used for`perlbin`.
+
+Next, check that the software prerequisites are met.
+```bash
+./validate.py config.json --ignore-input-output --software
+```
+### Start an analysis
+Put sample fastq files (R1_001.fastq.gz, and R2_001.fastq.gz suffix) in a directory (in my case `/n/scratch2/qz64/Nan_18_aug23/Nan_run_19`).
+
+Next, modify the following lines in the `config.json` file: **adapterpath** (line 8), **bt2idx** (line 17); **genome_sequence** (line 18);
 section **input/output**: **fastq_directory** (line 22), **workdir** (line 23), **fastq_sequence_length** (line 24),
 **organism_build** (line 25); section **cluster**: **email** (line 35).
 
 *  `fastq_directory` is the directory containing paired-end CUT&RUN sequences (with _R1_001.fastq.gz and _R2_001.fastq.gz suffix). 
+*  `workdir` is the output directory, where results are stored.
 *  `organism_build` is one of supported genome assemblies: hg38, hg19, mm10, and mm9. 
 *  `adapterpath` contains Illumina Truseq3-PE adapter sequences (we provide them). 
-*  `genome_sequence` is the whole-genome **masked** sequence which matches with the appropriate organism build.
+*  `genome_sequence` is the whole-genome **masked** sequence which matches with the appropriate organism build. See INSTALL.md for details.
 
 ### Create job submission scripts
 ```bash

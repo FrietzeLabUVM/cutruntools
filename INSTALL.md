@@ -1,6 +1,6 @@
 # CutRunTools Installation
 
-CutRunTools requires Python 2.7, R 3.3, Java, and [Slurm](https://slurm.schedmd.com/) job submission environment. It is designed to run on a cluster set up.
+CutRunTools requires Python 2.7, R 3.3, Java, Perl 5 and [Slurm](https://slurm.schedmd.com/) job submission environment. It is designed to run on a cluster set up.
 
 Installation also requires GCC to compile some C-based source code. 
 
@@ -51,6 +51,8 @@ The configuration file tells CutRunTools where to locate the prerequisite tools.
 {
 	"Rscriptbin": "/n/app/R/3.3.3/bin",
 	"pythonbin": "/n/app/python/2.7.12/bin",
+	"perlbin": "/n/app/perl/5.24.0/bin",
+	"javabin": "/n/app/java/jdk-1.8u112/bin",
 	"trimmomaticbin": "/n/app/trimmomatic/0.36/bin",
 	"trimmomaticjarfile": "trimmomatic-0.36.jar",
 	"bowtie2bin": "/n/app/bowtie2/2.2.9/bin",
@@ -113,6 +115,37 @@ To check if the paths are correct and if the softwares in these paths indeed wor
 ```
 ./validate.py config.json --ignore-input-output --software
 ```
+
+### A note about Python and Perl
+The version of Python (indicated by `pythonbin`) needs to be consistent with the version of Python used to install MACS2, and version used to install make_cut_matrix (`makecutmatrixbin`). 
+To confirm this, on our system, we enter
+```bash
+head -n 1 /n/app/macs2/2.1.1.20160309/bin/macs2
+#!/n/app/python/2.7.12/bin/python
+head -n 1 /home/qz64/.local/bin/make_cut_matrix
+#!/n/app/python/2.7.12/bin/python
+```
+Use `/n/app/python/2.7.12/bin` for the `pythonbin` field in `config.json`. 
+Similarly for Perl (`perlbin`) and meme-chip (`memebin`). Version of Perl used to install meme should be used for `perlbin`:
+```bash
+head -n 1 /home/qz64/meme/bin/meme-chip
+#!/n/app/perl/5.24.0/bin/perl
+```
+Use `/n/app/perl/5.24.0/bin` as value for `perlbin` in `config.json`.
+
+### A note about XML/Simple.pm not found
+Validate script may flag an error with MEME installation: XML/Simple.pm is not found.
+You may encounter this error if the XML PERL module is installed to a custom directory (i.e. home rather than in `/usr/` or `/usr/local`). 
+If this is the case, the solution is to set up the Perl library environment variables.
+On our system, the custom Perl modules are installed to `/home/qz64/perl5-O2/lib`, so we enter:
+```bash
+PERL5LIB="/home/qz64/perl5-O2/lib/perl5":$PERL5LIB
+PERL_LOCAL_LIB_ROOT="/home/qz64/perl5-O2":$PERL_LOCAL_LIB_ROOT
+export PERL5LIB
+export PERL_LOCAL_LIB_ROOT
+```
+Then try validate script again.
+
 
 ## Download genome assemblies
 
