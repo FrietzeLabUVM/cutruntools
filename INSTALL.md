@@ -111,6 +111,9 @@ The configuration file tells CutRunTools where to locate the prerequisite tools.
 ```
 Pay attention to the **the first 20 lines of this file** which concern the software installation. The rest is related to an actual analysis (explained in [USAGE.md](USAGE.md)). 
 
+
+### Validate prerequisites
+
 To check if the paths are correct and if the softwares in these paths indeed work:
 ```
 ./validate.py config.json --ignore-input-output --software
@@ -135,7 +138,7 @@ head -n 1 /home/qz64/meme/bin/meme-chip
 ```
 Use `/n/app/perl/5.24.0/bin` as value for `perlbin` in `config.json`.
 
-### Validation of meme, meme-chip failed, XML/Simple.pm not found
+#### Validation of meme, meme-chip failed, XML/Simple.pm not found
 Validate script may flag an error with MEME installation: XML/Simple.pm is not found.
 You may encounter this error if the XML PERL module is installed to a custom directory (i.e. home rather than in `/usr/` or `/usr/local`). 
 If this is the case, the solution is to set up the Perl library environment variables.
