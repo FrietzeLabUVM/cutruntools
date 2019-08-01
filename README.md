@@ -211,7 +211,9 @@ For more details, please see [USAGE.md](USAGE.md).
 
 ### Footprinting for user-specified motif
 
-CUT&RUNTools can run the motif scanning and motif footprinting step on a user-specified motif, such as a motif from the public JASPAR database. The motif should be in the MEME format. The script that you will want to look at is `generate.footprinting.factor.specific.centipede.py` that is in the directory `macs2.narrow.aug18` or `macs2.narrow.aug18.dedup`.
+CUT&RUNTools can run the motif scanning and motif footprinting step on a user-specified motif, such as a motif from the public JASPAR database. The motif should be in the MEME format. 
+
+The script that you will want to look at is `generate.footprinting.factor.specific.centipede.py` that is in the directory `macs2.narrow.aug18` or `macs2.narrow.aug18.dedup`.
 
 To do this analysis:
 
@@ -222,7 +224,9 @@ cd macs2.narrow.aug18
 ./generate.footprinting.factor.specific.centipede.py -b MA.00001.agataa.meme -p 0.001 -n GATA1
 ```
 
-The **-b** option specifies the MEME file. The **-p** option is the motif scanning p-value (recommended 0.0005, but for this example we will use 0.001 since GATA1 motif is quite short). The **-n** option is the name you give it. The script will generate a custom script for GATA1 motif, called `integrate.footprinting.GATA1.centipede.sh`. With this script, then you can run it on a narrowPeak file as follows:
+The **-b** option specifies the MEME file. The **-p** option is the motif scanning p-value (recommended 0.0005, but for this example we will use 0.001 since GATA1 motif is quite short). The **-n** option is the name you give it. 
+
+The script will generate a custom script for GATA1 motif, called `integrate.footprinting.GATA1.centipede.sh`. With this script, then you can run it on a narrowPeak file as follows:
 
 ```bash
 sbatch ./integrate.footprinting.GATA1.centipede.sh GATA1_HDP2_30min_S13_aligned_reads_peaks.narrowPeak
