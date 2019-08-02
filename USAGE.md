@@ -1,10 +1,10 @@
-# CutRunTools usage
+# CUT&RUNTools usage
 
 We provide a small CUT&RUN experiment [qzhudfci/datasets/src](https://bitbucket.org/qzhudfci/datasets/src) that new users can use to test drive our tool. This is GATA1 chr11 only. First put the R1_001 and R2_001 fastq files in a folder and note its path (in my case `/n/scratch2/qz64/Nan_18_aug23/Nan_run_19`). Then write a JSON configuration file (named `config.json`) as shown below.
 
 ## Defining a configuration file
 
-CutRunTools requires a JSON configuration file (named as `config.json`) which specifies all that is needed to run an analysis. 
+CUT&RUNTools requires a JSON configuration file (named as `config.json`) which specifies all that is needed to run an analysis. 
 A sample configuration file is below. 
 
 ```json
@@ -101,7 +101,7 @@ Step 1. **Read trimming, alignment.** We suppose the `workdir` is defined as `/n
 cd /n/scratch2/qz64/workdir
 sbatch ./integrated.sh GATA1_D7_30min_chr11_R2_001.fastq.gz
 ```
-The parameter is the fastq file. Even though we specify the _R1_001.fastq.gz, CutRunTools actually checks that both forward and reverse fastq files are present. Always use the _R1_001 of the pair as parameter of this command.
+The parameter is the fastq file. Even though we specify the _R1_001.fastq.gz, CUT&RUNTools actually checks that both forward and reverse fastq files are present. Always use the _R1_001 of the pair as parameter of this command.
 
 Step 2. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size.
 ```bash
@@ -109,12 +109,12 @@ cd aligned.aug10
 sbatch ./integrated.step2.sh GATA1_D7_30min_chr11_aligned_reads.bam
 ```
 
-Step 3. **Motif finding.** CutRunTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
+Step 3. **Motif finding.** CUT&RUNTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
 ```bash
 cd ../macs2.narrow.aug18
 sbatch ./integrate.motif.find.sh GATA1_D7_30min_chr11_aligned_reads_peaks.narrowPeak
 ```
-By default, CutRunTools keeps duplicate fragments. If instead users wish to use deduplicate version, 
+By default, CUT&RUNTools keeps duplicate fragments. If instead users wish to use deduplicate version, 
 ```bash
 cd ../macs2.narrow.aug18.dedup
 sbatch ./integrate.motif.find.sh GATA1_D7_30min_chr11_aligned_reads_peaks.narrowPeak
