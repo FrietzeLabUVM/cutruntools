@@ -7,6 +7,12 @@ To get started, please see [INSTALL.md](INSTALL.md) about how to set up the pipe
 
 Once the package is installed, please see [USAGE.md](USAGE.md) about usage. Basic usage is provided below.
 
+If you run into issues and would like to report them, you can use the "Issues" tab on the left hand side. Alternatively, you can contact me. See contact information from Biorxiv paper.
+
+## Citation
+
+https://www.biorxiv.org/content/10.1101/529081v1.abstract
+
 
 ## Basic Usage
 
