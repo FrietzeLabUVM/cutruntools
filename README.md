@@ -7,7 +7,7 @@ To get started, please see [INSTALL.md](INSTALL.md) about how to set up the pipe
 
 Once the package is installed, please see [USAGE.md](USAGE.md) about usage. Basic usage is provided below.
 
-If you run into issues and would like to report them, you can use the "Issues" tab on the left hand side. Alternatively, you can contact me. See contact information from Biorxiv paper.
+If you run into issues and would like to report them, you can use the "Issues" tab on the left hand side. Alternatively, you can contact me or one of corresponding authors: see contact information zqian{at}jimmy.harvard.edu, stuart_orkin{at}dfci.harvard.edu, or gcyuan{at}jimmy.harvard.edu.
 
 ## Citation
 
