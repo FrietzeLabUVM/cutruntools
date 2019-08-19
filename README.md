@@ -149,11 +149,11 @@ sbatch ./integrated.step2.sh CR_BCL11A_W9_r1_S17_aligned_reads.bam
 
 After this step, the following directories (from varying peak calling settings) are generated:
 
-* MACS2: `../macs2.(narrow/broad)[.all.frag].aug18[.dedup]`: `()` designates required, `[]` designates optional
+* Directories `../macs2.(narrow/broad)[.all.frag].aug18[.dedup]`: `()` designates required, `[]` designates optional. MACS2.
     * `(narrow/broad)`: narrowPeak or broadPeak calling setting.
     * `[.dedup]`: with dedup or without dedup (this flag would be absent). Dedup means duplicate fragments removed.
     * `[.all.frag]`: using all fragments or <120bp (this flag would be absent)
-* SEACR: `../seacr.aug12[.all.frag][.dedup]`: `()` designates required, `[]` designates optional
+* Directories `../seacr.aug12[.all.frag][.dedup]`: `()` designates required, `[]` designates optional. SEACR.
     * `[.dedup]`: with dedup or without dedup (this flag would be absent)
     * `[.all.frag]`: using all fragments or <120bp (this flag would be absent)
     * The SEACR analysis generates both stringent and relaxed peaks.
