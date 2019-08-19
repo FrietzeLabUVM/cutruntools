@@ -128,6 +128,8 @@ CUT&RUNTools varies through different peak calling settings and generates multip
 
 Which directory to use: if **TF CUT&RUN**, I prefer **macs2.narrow.aug18** or **macs2.narrow.aug18.dedup**. If **histone CUT&RUN**, use **macs2.broad.all.frag.aug18**. If **SEACR**, use **seacr.aug12.all.frag** (histone) or **seacr.aug12** (TF) and use the **stringent** peaks within each folder.
 
+For large fragment (>120bp), the peak results in directories `*.all.frag.*` should be used.
+
 Step 3. **Motif finding.** CUT&RUNTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
 ```bash
 #Use macs2.narrow.aug18 or any of the peak calling result directory in the above table

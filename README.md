@@ -188,10 +188,8 @@ sbatch ./integrate.motif.find.sh GATA1_D7_30min_chr11_aligned_reads_treat.string
 Step 4. **Motif footprinting.**
 ```bash
 cd ../macs2.narrow.aug18
-#For narrow setting, the peak file ends in .narrowPeak
-#For broad setting, the peak file ends in .broadPeak
-#For seacr setting, the peak file ends in .stringent.sort.bed
-#Use the right peak file accordingly
+#supports narrowPeak, broadPeak, or strigent.sort.bed (SEACR)
+#use the right file that matches peak calling setting
 sbatch ./integrate.footprinting.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
 ```
 Beautiful footprinting figures will be located in the directory `fimo.result`. Footprinting figures are created for every motif found by MEME-chip, but only the right motif (associated with TF) will have a proper looking shape. Users can scan through all the motifs' footprints.
