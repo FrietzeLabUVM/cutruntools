@@ -9,7 +9,7 @@ Once the package is installed, please see [USAGE.md](USAGE.md) about usage. Basi
 
 If you run into issues and would like to report them, you can use the "Issues" tab on the left hand side. Alternatively, you can contact me or one of corresponding authors: zqian{at}jimmy.harvard.edu, stuart_orkin{at}dfci.harvard.edu, or gcyuan{at}jimmy.harvard.edu.
 
-Read our [paper](https://www.biorxiv.org/content/10.1101/529081v1.abstract). Sign up for cutruntools [Google group mailing list](https://groups.google.com/forum/#!forum/cutruntools) to be part of the community.
+Read our [paper](https://www.biorxiv.org/content/10.1101/529081v1.abstract). Sign up for cutruntools [Google group mailing list](https://groups.google.com/forum/#!forum/cutruntools) to ask questions, receive updates.
 
 ## What's New
 
