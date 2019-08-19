@@ -552,7 +552,7 @@ export LD_LIBRARY_PATH=$pythonldlibrary:$ldlibrary
 
 p=%.5f
 motif_dir=$mdiscovery/motifs #a directory containing a list of *.meme files
-peak_filename=`filename $peak_file`
+peak_filename=`basename $peak_file`
 workdir=`pwd`
 dir=blk_filtered
 fa_dir=blk_filtered.fa
@@ -828,7 +828,7 @@ def generate_TF_specific_footprint_script_sh(config, pval, motif_file, tf_intere
 pythonbin=%s
 
 peak_file=$1 #a narrowPeak file
-peak_filename=`filename $peak_file`
+peak_filename=`basename $peak_file`
 mbase=""
 summit=""
 summitfa=""
