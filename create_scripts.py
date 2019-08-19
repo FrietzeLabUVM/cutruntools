@@ -119,7 +119,10 @@ def generate_integrated_step2_sh(config, output=None):
 
 	p_pythonbase = config["pythonbin"].rstrip("/").rstrip("/bin")
 
-	path = """picardbin=%s
+	path = """Rscriptbin=%s
+pythonbin=%s
+bedopsbin=%s
+picardbin=%s
 picardjarfile=%s
 samtoolsbin=%s
 macs2bin=%s
@@ -138,7 +141,8 @@ ldlibrary=`echo $LD_LIBRARY_PATH | tr : "\\n" | grep -v $pythonldlibrary | paste
 unset LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$pythonldlibrary:$ldlibrary
 
-""" % (config["picardbin"], config["picardjarfile"], config["samtoolsbin"], 
+""" % (config["Rscriptbin"], config["pythonbin"], config["bedopsbin"], 
+	config["picardbin"], config["picardjarfile"], config["samtoolsbin"], 
 	config["macs2bin"], config["javabin"],
 	config["extratoolsbin"], config["extrasettings"], 
 	config["genome_sequence"], config["macs2pythonlib"], p_pythonbase + "/lib")
@@ -163,25 +167,27 @@ mkdir $d
 fi
 done
 
->&2 echo "Sorting bam... ""$base".bam
+>&2 echo "Filtering unmapped fragments... ""$base".bam
+>&2 date
+$samtoolsbin/samtools view -bh -f 3 -F 4 -F 8 $dirname/"$base".bam > sorted/"$base".step1.bam
+
+>&2 echo "Sorting BAM... ""$base".bam
 >&2 date
 $javabin/java -jar $picardbin/$picardjarfile SortSam \
-INPUT=$dirname/"$base".bam OUTPUT=sorted/"$base".bam SORT_ORDER=coordinate
+INPUT=sorted/"$base".step1.bam OUTPUT=sorted/"$base".bam SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT
+rm -rf sorted/"$base".step1.bam
 
 >&2 echo "Marking duplicates... ""$base".bam
 >&2 date
 $javabin/java -jar $picardbin/$picardjarfile MarkDuplicates \
-INPUT=sorted/"$base".bam OUTPUT=dup.marked/"$base".bam \
+INPUT=sorted/"$base".bam OUTPUT=dup.marked/"$base".bam VALIDATION_STRINGENCY=SILENT \
 METRICS_FILE=metrics."$base".txt
 
 >&2 echo "Removing duplicates... ""$base".bam
 >&2 date
-$javabin/java -jar $picardbin/$picardjarfile MarkDuplicates \
-INPUT=sorted/"$base".bam OUTPUT=dedup/"$base".bam \
-METRICS_FILE=metrics."$base".txt \
-REMOVE_DUPLICATES=true
+$samtoolsbin/samtools view -bh -F 1024 dup.marked/"$base".bam > dedup/"$base".bam
 
-for d in sorted.120bp dup.marked.120bp dedup.120bp; do
+for d in dup.marked.120bp dedup.120bp; do
 if [ ! -d $d ]; then
 mkdir $d
 fi
@@ -189,16 +195,14 @@ done
 
 >&2 echo "Filtering to <120bp... ""$base".bam
 >&2 date
-$samtoolsbin/samtools view -h sorted/"$base".bam |awk -f $extrasettings/filter_below.awk |$samtoolsbin/samtools view -Sb - > sorted.120bp/"$base".bam
-$samtoolsbin/samtools view -h dup.marked/"$base".bam |awk -f $extrasettings/filter_below.awk |$samtoolsbin/samtools view -Sb - > dup.marked.120bp/"$base".bam
-$samtoolsbin/samtools view -h dedup/"$base".bam |awk -f $extrasettings/filter_below.awk |$samtoolsbin/samtools view -Sb - > dedup.120bp/"$base".bam
+$samtoolsbin/samtools view -h dup.marked/"$base".bam |LC_ALL=C awk -f $extrasettings/filter_below.awk |$samtoolsbin/samtools view -Sb - > dup.marked.120bp/"$base".bam
+$samtoolsbin/samtools view -h dedup/"$base".bam |LC_ALL=C awk -f $extrasettings/filter_below.awk |$samtoolsbin/samtools view -Sb - > dedup.120bp/"$base".bam
 
 >&2 echo "Creating bam index files... ""$base".bam
 >&2 date
 $samtoolsbin/samtools index sorted/"$base".bam
 $samtoolsbin/samtools index dup.marked/"$base".bam
 $samtoolsbin/samtools index dedup/"$base".bam
-$samtoolsbin/samtools index sorted.120bp/"$base".bam
 $samtoolsbin/samtools index dup.marked.120bp/"$base".bam
 $samtoolsbin/samtools index dedup.120bp/"$base".bam
 
@@ -222,7 +226,13 @@ base_file=`basename $bam_file .bam`
 outdir=$workdir/../macs2.narrow.aug18 #for macs2
 outdir2=$workdir/../macs2.narrow.aug18.dedup #for macs2 dedup version
 
-for d in $outdir $outdir2; do
+outdirbroad=$workdir/../macs2.broad.aug18 #for macs2
+outdirbroad2=$workdir/../macs2.broad.aug18.dedup #for macs2 dedup version
+
+outdirseac=$workdir/../seacr.aug12 #for seacr
+outdirseac2=$workdir/../seacr.aug12.dedup #for seacr dedup version
+
+for d in $outdir $outdir2 $outdirbroad $outdirbroad2 $outdirseac $outdirseac2; do
 if [ ! -d $d ]; then
 mkdir $d
 fi
@@ -230,35 +240,145 @@ done
 
 $macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir -q 0.01 -B --SPMR --keep-dup all 2> $logdir/"$base_file".macs2
 $macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir2 -q 0.01 -B --SPMR 2> $logdir/"$base_file".dedup.macs2
-""" % (macs2_org, macs2_org)
+
+#broad peak calls
+$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirbroad --broad --broad-cutoff 0.1 -B --SPMR --keep-dup all 2> $logdir/"$base_file".broad.all.frag.macs2
+$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirbroad2 --broad --broad-cutoff 0.1 -B --SPMR 2> $logdir/"$base_file".broad.all.frag.dedup.macs2
+$pythonbin/python $extratoolsbin/get_summits_broadPeak.py $outdirbroad/"$base_file"_peaks.broadPeak|$bedopsbin/sort-bed - > $outdirbroad/"$base_file"_summits.bed
+$pythonbin/python $extratoolsbin/get_summits_broadPeak.py $outdirbroad2/"$base_file"_peaks.broadPeak|$bedopsbin/sort-bed - > $outdirbroad2/"$base_file"_summits.bed
+
+#SEACR peak calls
+$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirseac -q 0.01 -B --keep-dup all
+$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirseac2 -q 0.01 -B
+$pythonbin/python $extratoolsbin/change.bdg.py $outdirseac/"$base_file"_treat_pileup.bdg > $outdirseac/"$base_file"_treat_integer.bdg
+$pythonbin/python $extratoolsbin/change.bdg.py $outdirseac2/"$base_file"_treat_pileup.bdg > $outdirseac2/"$base_file"_treat_integer.bdg
+$extratoolsbin/SEACR_1.1.sh $outdirseac/"$base_file"_treat_integer.bdg 0.01 non stringent $outdirseac/"$base_file"_treat $Rscriptbin
+$extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non stringent $outdirseac2/"$base_file"_treat $Rscriptbin
+$bedopsbin/sort-bed $outdirseac/"$base_file"_treat.stringent.bed > $outdirseac/"$base_file"_treat.stringent.sort.bed
+$bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.stringent.bed > $outdirseac2/"$base_file"_treat.stringent.sort.bed
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac/"$base_file"_treat.stringent.bed|$bedopsbin/sort-bed - > $outdirseac/"$base_file"_treat.stringent.sort.summits.bed
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.stringent.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.stringent.sort.summits.bed
+for i in _summits.bed _peaks.xls _peaks.narrowPeak _control_lambda.bdg _treat_pileup.bdg; do 
+rm -rf $outdirseac/"$base_file"$i
+rm -rf $outdirseac2/"$base_file"$i
+done
+
+#SEACR relaxed peak calls
+$extratoolsbin/SEACR_1.1.sh $outdirseac/"$base_file"_treat_integer.bdg 0.01 non relaxed $outdirseac/"$base_file"_treat $Rscriptbin
+$extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non relaxed $outdirseac2/"$base_file"_treat $Rscriptbin
+$bedopsbin/sort-bed $outdirseac/"$base_file"_treat.relaxed.bed > $outdirseac/"$base_file"_treat.relaxed.sort.bed
+$bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.relaxed.bed > $outdirseac2/"$base_file"_treat.relaxed.sort.bed
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac/"$base_file"_treat.relaxed.sort.summits.bed
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.relaxed.sort.summits.bed
+""" % (macs2_org, macs2_org, macs2_org, macs2_org, macs2_org, macs2_org)
 
 	scripts2 = """
+cur=`pwd`
 >&2 echo "Converting bedgraph to bigwig... ""$base".bam
 >&2 date
 cd $outdir
-sort -k1,1 -k2,2n $outdir/"$base_file"_treat_pileup.bdg > $outdir/"$base_file".sort.bdg
+LC_ALL=C sort -k1,1 -k2,2n $outdir/"$base_file"_treat_pileup.bdg > $outdir/"$base_file".sort.bdg
 $extratoolsbin/bedGraphToBigWig $outdir/"$base_file".sort.bdg $chromsizedir/%s.chrom.sizes $outdir/"$base_file".sorted.bw
 rm -rf "$base_file".sort.bdg
 
 cd $outdir2
-sort -k1,1 -k2,2n $outdir2/"$base_file"_treat_pileup.bdg > $outdir2/"$base_file".sort.bdg
+LC_ALL=C sort -k1,1 -k2,2n $outdir2/"$base_file"_treat_pileup.bdg > $outdir2/"$base_file".sort.bdg
 $extratoolsbin/bedGraphToBigWig $outdir2/"$base_file".sort.bdg $chromsizedir/%s.chrom.sizes $outdir2/"$base_file".sorted.bw
 rm -rf "$base_file".sort.bdg
+""" % (config["input/output"]["organism_build"], config["input/output"]["organism_build"])
 
+
+	scriptallfrag = """#====================================================================================================================================
+
+#all fragments
+cd $cur
+bam_file=dup.marked/"$base".bam
+dir=`dirname $bam_file`
+base_file=`basename $bam_file .bam`
+
+outdir=$workdir/../macs2.narrow.all.frag.aug18 #for macs2
+outdir2=$workdir/../macs2.narrow.all.frag.aug18.dedup #for macs2 dedup version
+
+outdirbroad=$workdir/../macs2.broad.all.frag.aug18 #for macs2
+outdirbroad2=$workdir/../macs2.broad.all.frag.aug18.dedup #for macs2 dedup version
+
+#SEACR peak calling
+outdirseac=$workdir/../seacr.aug12.all.frag #for seacr
+outdirseac2=$workdir/../seacr.aug12.all.frag.dedup #for seacr dedup version
+
+for d in $outdir $outdir2 $outdirbroad $outdirbroad2 $outdirseac $outdirseac2; do
+if [ ! -d $d ]; then
+mkdir $d
+fi
+done
+
+$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir -q 0.01 -B --SPMR --keep-dup all 2> $logdir/"$base_file".macs2
+$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir2 -q 0.01 -B --SPMR 2> $logdir/"$base_file".dedup.macs2
+
+#broad peak calls
+$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirbroad --broad --broad-cutoff 0.1 -B --keep-dup all 2> $logdir/"$base_file".broad.all.frag.macs2
+$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirbroad2 --broad --broad-cutoff 0.1 -B 2> $logdir/"$base_file".broad.all.frag.dedup.macs2
+$pythonbin/python $extratoolsbin/get_summits_broadPeak.py $outdirbroad/"$base_file"_peaks.broadPeak|$bedopsbin/sort-bed - > $outdirbroad/"$base_file"_summits.bed
+$pythonbin/python $extratoolsbin/get_summits_broadPeak.py $outdirbroad2/"$base_file"_peaks.broadPeak|$bedopsbin/sort-bed - > $outdirbroad2/"$base_file"_summits.bed
+
+#SEACR peak calling
+$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirseac -q 0.01 -B --keep-dup all
+$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirseac2 -q 0.01 -B 
+$pythonbin/python $extratoolsbin/change.bdg.py $outdirseac/"$base_file"_treat_pileup.bdg > $outdirseac/"$base_file"_treat_integer.bdg
+$pythonbin/python $extratoolsbin/change.bdg.py $outdirseac2/"$base_file"_treat_pileup.bdg > $outdirseac2/"$base_file"_treat_integer.bdg
+$extratoolsbin/SEACR_1.1.sh $outdirseac/"$base_file"_treat_integer.bdg 0.01 non stringent $outdirseac/"$base_file"_treat $Rscriptbin
+$extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non stringent $outdirseac2/"$base_file"_treat $Rscriptbin
+$bedopsbin/sort-bed $outdirseac/"$base_file"_treat.stringent.bed > $outdirseac/"$base_file"_treat.stringent.sort.bed
+$bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.stringent.bed > $outdirseac2/"$base_file"_treat.stringent.sort.bed
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac/"$base_file"_treat.stringent.bed|$bedopsbin/sort-bed - > $outdirseac/"$base_file"_treat.stringent.sort.summits.bed
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.stringent.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.stringent.sort.summits.bed
+for i in _summits.bed _peaks.xls _peaks.narrowPeak _control_lambda.bdg _treat_pileup.bdg; do 
+rm -rf $outdirseac/"$base_file"$i
+rm -rf $outdirseac2/"$base_file"$i
+done
+
+$extratoolsbin/SEACR_1.1.sh $outdirseac/"$base_file"_treat_integer.bdg 0.01 non relaxed $outdirseac/"$base_file"_treat $Rscriptbin
+$extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non relaxed $outdirseac2/"$base_file"_treat $Rscriptbin
+$bedopsbin/sort-bed $outdirseac/"$base_file"_treat.relaxed.bed > $outdirseac/"$base_file"_treat.relaxed.sort.bed
+$bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.relaxed.bed > $outdirseac2/"$base_file"_treat.relaxed.sort.bed
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac/"$base_file"_treat.relaxed.sort.summits.bed
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.relaxed.sort.summits.bed
+""" % (macs2_org, macs2_org, macs2_org, macs2_org, macs2_org, macs2_org)
+
+	scripts2allfrag = """
+>&2 echo "Converting bedgraph to bigwig... ""$base".bam
+>&2 date
+cd $outdir
+LC_ALL=C sort -k1,1 -k2,2n $outdir/"$base_file"_treat_pileup.bdg > $outdir/"$base_file".sort.bdg
+$extratoolsbin/bedGraphToBigWig $outdir/"$base_file".sort.bdg $chromsizedir/%s.chrom.sizes $outdir/"$base_file".sorted.bw
+rm -rf "$base_file".sort.bdg
+
+cd $outdir2
+LC_ALL=C sort -k1,1 -k2,2n $outdir2/"$base_file"_treat_pileup.bdg > $outdir2/"$base_file".sort.bdg
+$extratoolsbin/bedGraphToBigWig $outdir2/"$base_file".sort.bdg $chromsizedir/%s.chrom.sizes $outdir2/"$base_file".sorted.bw
+rm -rf "$base_file".sort.bdg
+""" % (config["input/output"]["organism_build"], config["input/output"]["organism_build"])
+
+
+	scriptfinal = """
 >&2 echo "Finished"
 >&2 date
-""" % (config["input/output"]["organism_build"], config["input/output"]["organism_build"])
+"""
 
 	outp.write(header + "\n")
 	outp.write(path + "\n")
 	outp.write(scripts + "\n")
 	outp.write(macs_script + "\n")
 	outp.write(scripts2 + "\n")
+	outp.write(scriptallfrag + "\n")
+	outp.write(scripts2allfrag + "\n")
+	outp.write(scriptfinal + "\n")
+
 
 	if output is not None:
 		outp.close()
 
-def generate_integrated_motif_find_sh(config, output=None):
+def generate_integrated_motif_find_sh(config, output=None, peak="narrowPeak", is_seacr=False):
 	outp = sys.stdout
 	if output is not None:
 		fw = open(output, "w")
@@ -287,40 +407,49 @@ genome_sequence=%s
 extrasettings=%s
 blacklist=$extrasettings/%s.blacklist.bed
 
-i=$1 #filename must end with .narrowPeak
+i=$1 #filename must end with .narrowPeak or .broadPeak or .bed (if SEACR)
 >&2 echo "Input file is $i"
 
 #expand the path for $1
 relinfile=`realpath -s $i`
 dirname=`dirname $relinfile`
 
-#cd to current directory (macs2.narrow.aug10)
+#cd to current directory
 cd $dirname
 
-for d in padded padded.fa repeat.region filtered blk_filtered; do
+for d in blk_filtered; do
 if [ ! -d $d ]; then
 mkdir $d
 fi
 done
+""" % (config["memebin"], config["bedopsbin"], config["bedtoolsbin"], config["pythonbin"], \
+	config["perlbin"], config["genome_sequence"], config["extrasettings"], \
+	config["input/output"]["organism_build"])
 
-workdir=`pwd`
-fname=`basename $i _peaks.narrowPeak`
-peak=$fname"_peaks.narrowPeak"
-summit=$fname"_summits.bed"
-summitfa=$fname"_summits_padded.fa"
-""" % (config["memebin"], config["bedopsbin"], config["bedtoolsbin"], config["pythonbin"], config["perlbin"], config["genome_sequence"], config["extrasettings"], config["input/output"]["organism_build"])
+
+	suffix = "_peaks.narrowPeak"
+	summit_suffix = "_summits.bed"
+	summit_padded_suffix = "_summits_padded.fa"
+	if is_seacr==False and peak=="narrowPeak":
+		suffix="_peaks.narrowPeak"
+	elif is_seacr==False and peak=="broadPeak":
+		suffix="_peaks.broadPeak"
+	elif is_seacr==True:
+		suffix="_treat.stringent.sort.bed"
+		summit_suffix="_treat.stringent.sort.summits.bed"
+		summit_padded_suffix="_treat.stringent.sort.summits_padded.fa"
+
+	sc2 = """workdir=`pwd`
+fname=`basename $i %s`
+peak=$fname"%s"
+summit=$fname"%s"
+summitfa=$fname"%s"
+""" % (suffix, suffix, summit_suffix, summit_padded_suffix)
 
 	scripts2 = """>&2 echo "Get filtered peaks..."
-$bedopsbin/bedops --range %d -u $workdir/$summit > padded/$summit
-$bedtoolsbin/bedtools getfasta -fi $genome_sequence -bed padded/$summit -fo padded.fa/$summitfa
-$pythonbin/python filter.py padded.fa/$summitfa %d > repeat.region/$summit
-$bedopsbin/bedops -n 1 $workdir/$summit repeat.region/$summit | $bedopsbin/sort-bed - > filtered/$summit
-$bedopsbin/bedops -e 1 $workdir/$peak filtered/$summit > filtered/$peak
-cat filtered/$peak | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > blk_filtered/$peak
-cat filtered/$summit | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > blk_filtered/$summit
-
-""" % (config["motif_finding"]["num_bp_from_summit"], 2*config["motif_finding"]["num_bp_from_summit"])
-
+cat $peak | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > blk_filtered/$peak
+cat $summit | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > blk_filtered/$summit
+"""
 	scripts3 = """#motif discovery starts here
 motif_dir=random.%d
 msummit=$motif_dir/summits
@@ -352,17 +481,26 @@ $memebin/meme-chip -oc $meme_outdir -dreme-m %d -meme-nmotifs %d $mpaddedfa/$sum
 
 	outp.write(header + "\n")
 	outp.write(scripts + "\n")
+	outp.write(sc2 + "\n")
 	outp.write(scripts2 + "\n")
 	outp.write(scripts3 + "\n")
 
 	if output is not None:
 		outp.close()
 
-def generate_integrated_footprinting_sh(config, dedup=False, output=None):
+def generate_integrated_footprinting_sh(config, dedup=False, output=None, is_all_frag=False, peak="narrowPeak", is_seacr=False):
 	outp = sys.stdout
 	if output is not None:
 		fw = open(output, "w")
 		outp = fw
+
+	suffix = "_peaks.narrowPeak"
+	if is_seacr==False and peak=="narrowPeak":
+		suffix="_peaks.narrowPeak"
+	elif is_seacr==False and peak=="broadPeak":
+		suffix="_peaks.broadPeak"
+	elif is_seacr==True:
+		suffix="_treat.stringent.sort.bed"
 
 	header = """#!/bin/bash
 #SBATCH -n 1                               # Request one core
@@ -380,8 +518,9 @@ def generate_integrated_footprinting_sh(config, dedup=False, output=None):
 
 	scripts = """
 pythonbin=%s
-peak_file=$1 #a narrowPeak file
-mbase=`basename $peak_file _peaks.narrowPeak`
+peak_file=$1 #a narrowPeak/broadPeak/SEACR bed file
+mbase=`basename $peak_file %s`
+peak=$mbase"%s"
 mdiscovery=random.%d/MEME_"$mbase"_shuf
 
 #expand the path for $peak_file
@@ -391,9 +530,8 @@ dirname=`dirname $relinfile`
 #cd to current directory (macs2.narrow.aug10)
 cd $dirname
 
-
 $pythonbin/python read.meme.py $mdiscovery
-""" % (config["pythonbin"], config["motif_finding"]["num_peaks"])
+""" % (config["pythonbin"], suffix, suffix, config["motif_finding"]["num_peaks"])
 
 	p_pythonbase = config["pythonbin"].rstrip("/").rstrip("/bin")
 
@@ -414,7 +552,7 @@ export LD_LIBRARY_PATH=$pythonldlibrary:$ldlibrary
 
 p=%.5f
 motif_dir=$mdiscovery/motifs #a directory containing a list of *.meme files
-base=`basename $peak_file .narrowPeak`
+peak_filename=`filename $peak_file`
 workdir=`pwd`
 dir=blk_filtered
 fa_dir=blk_filtered.fa
@@ -423,8 +561,11 @@ if [ ! -d $fa_dir ]; then
 mkdir $fa_dir
 fi
 
+if [ ! -d $dir ] || [ ! -f $dir/$peak ] ; then
 blacklist=$extrasettings/%s.blacklist.bed
-cat $workdir/$dir/"$base".narrowPeak | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > $workdir/$dir/"$base".filtered.narrowPeak
+cat $workdir/$dir/"$peak_filename" | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > $workdir/$dir/$peak
+fi
+
 """ % (config["memebin"], config["bedopsbin"], config["bedtoolsbin"], 
 	config["genome_sequence"], config["samtoolsbin"], 
 	config["makecutmatrixbin"], config["Rscriptbin"],
@@ -433,11 +574,11 @@ cat $workdir/$dir/"$base".narrowPeak | grep -v -e "chrM" | $bedopsbin/sort-bed -
 	config["input/output"]["organism_build"])
 
 	scripts3 = """
-$bedtoolsbin/bedtools getfasta -fi $genome_sequence -bed $workdir/$dir/"$base".filtered.narrowPeak -fo $fa_dir/"$base".fa
-$pythonbin/python fix_sequence.py $fa_dir/"$base".fa
+$bedtoolsbin/bedtools getfasta -fi $genome_sequence -bed $workdir/$dir/$peak -fo $fa_dir/"$mbase".fa
+$pythonbin/python fix_sequence.py $fa_dir/"$mbase".fa
 
 outdir=fimo.result
-for d in $outdir $outdir/$base; do
+for d in $outdir $outdir/$mbase; do
 if [ ! -d $d ]; then
 mkdir $d
 fi
@@ -445,45 +586,54 @@ done
 
 for m in `ls -1 $motif_dir`; do
 motif=`basename $m .meme`
-fimo_d=$outdir/$base/fimo2.$motif
+fimo_d=$outdir/$mbase/fimo2.$motif
 if [ ! -d $fimo_d ]; then
 mkdir $fimo_d
 fi
-$memebin/fimo --thresh $p --parse-genomic-coord -oc $fimo_d $motif_dir/"$motif".meme $fa_dir/"$base".fa
-
+$memebin/fimo --thresh $p --parse-genomic-coord -oc $fimo_d $motif_dir/"$motif".meme $fa_dir/"$mbase".fa
 cur_path=`echo $PATH | tr : "\\n" | grep -v $bedopsbin | paste -s -d:`
 unset PATH
 export PATH=$cur_path:$bedopsbin
 
 $bedopsbin/gff2bed < $fimo_d/fimo.gff | awk 'BEGIN {IFS="\t"; OFS="\t";} {print $1,$2,$3,$4,$5,$6}' > $fimo_d/fimo.bed
 done
-"""
+""" 
+
+	bamdir = "dup.marked.120bp"
+	if is_all_frag==True and dedup==True:
+		bamdir = "dedup"
+	elif is_all_frag==True:
+		bamdir = "dup.marked"
+	elif is_all_frag==False and dedup==True:
+		bamdir = "dedup.120bp"
+	else:
+		bamdir = "dup.marked.120bp"
+
+	scripts4a = """
+bamfile=../aligned.aug10/%s/"$mbase".bam
+""" % bamdir
+
 	scripts4 = """
-bamfile=../aligned.aug10/dup.marked.120bp/"$mbase".bam
 workdir=`pwd`
 dir=`dirname $bamfile`
-base=`basename $bamfile .bam`
+bambase=`basename $bamfile .bam`
 
 dest=centipede.bam
-outbam=$dest/"$base".bam
+outbam=$dest/"$bambase".bam
 if [ ! -d $dest ]; then
 mkdir $dest
 fi
 """
+
 	scripts5 = """
-$samtoolsbin/samtools view -b -h -f 3 -F 4 -F 8 -o $outbam $bamfile
-"""
-	if dedup:
-		scripts5 = """
-#note that 1024 means read is PCR or optical duplicate
-$samtoolsbin/samtools view -b -h -f 3 -F 4 -F 8 -F 1024 -o $outbam $bamfile #previous version
-"""
+cd $dest
+ln -s ../../aligned.aug10/%s/"$mbase".bam .
+ln -s ../../aligned.aug10/%s/"$mbase".bam.bai .
+cd ..
+""" % (bamdir, bamdir)
 
 	scripts6 = """
-$samtoolsbin/samtools index $outbam
-
-peakfile=blk_filtered/"$base"_peaks.narrowPeak
-fimo_dir=fimo.result/"$base"_peaks
+fimo_dir=$outdir/$mbase
 
 for i in `ls -1 $fimo_dir`; do #shows a list of motifs
 echo "Doing $i..."
@@ -498,6 +648,7 @@ done
 	outp.write(scripts + "\n")
 	outp.write(scripts2 + "\n")
 	outp.write(scripts3 + "\n")
+	outp.write(scripts4a + "\n")
 	outp.write(scripts4 + "\n")
 	outp.write(scripts5 + "\n")
 	outp.write(scripts6 + "\n")
@@ -615,7 +766,7 @@ def write_length_file(n, length):
 	fw.close()
 
 
-def generate_TF_footprinting_script_sh(config, dedup=False, output=None):
+def generate_TF_footprinting_script_sh(config, dedup=False, output=None, is_all_frag=False, peak="narrowPeak", is_seacr=False):
 	outp = sys.stdout
 	if output is not None:
 		fw = open(output, "w")
@@ -626,6 +777,25 @@ def generate_TF_footprinting_script_sh(config, dedup=False, output=None):
 		dedup_str = "True"
 	else:
 		dedup_str = "False"
+
+	suffix = "_peaks.narrowPeak"
+	if is_seacr==False and peak=="narrowPeak":
+		suffix="_peaks.narrowPeak"
+	elif is_seacr==False and peak=="broadPeak":
+		suffix="_peaks.broadPeak"
+	elif is_seacr==True:
+		suffix="_treat.stringent.sort.bed"
+
+	bamdir = "dup.marked.120bp"
+	if is_all_frag==True and dedup==True:
+		bamdir = "dedup"
+	elif is_all_frag==True:
+		bamdir = "dup.marked"
+	elif is_all_frag==False and dedup==True:
+		bamdir = "dedup.120bp"
+	else:
+		bamdir = "dup.marked.120bp"
+
 
 	script="""#!/usr/bin/python
 import shutil
@@ -656,8 +826,28 @@ def generate_TF_specific_footprint_script_sh(config, pval, motif_file, tf_intere
 
 	script = \"\"\"
 pythonbin=%s
+
 peak_file=$1 #a narrowPeak file
-mbase=`basename $peak_file _peaks.narrowPeak`
+peak_filename=`filename $peak_file`
+mbase=""
+summit=""
+summitfa=""
+if [[ "$peak_file" == *narrowPeak ]]
+then
+	mbase=`basename $peak_file _peaks.narrowPeak`
+	summit=$mbase"_summits.bed"
+	summitfa=$mbase"_summits_padded.fa"
+elif [[ "$peak_file" == *broadPeak ]]
+then
+	mbase=`basename $peak_file _peaks.broadPeak`
+	summit=$mbase"_summits.bed"
+	summitfa=$mbase"_summits_padded.fa"
+elif [[ "$peak_file" == *stringent.sort.bed ]]
+then
+	mbase=`basename $peak_file _treat.stringent.sort.bed`
+	summit=$mbase"_treat.stringent.sort.summits.bed"
+	summitfa=$mbase"_treat.stringent.sort.summits_padded.fa"
+fi
 
 #expand the path for $peak_file
 relinfile=`realpath -s $peak_file`
@@ -686,7 +876,6 @@ export LD_LIBRARY_PATH=$pythonldlibrary:$ldlibrary
 
 p=%.5f
 motif_file=%s
-base=`basename $peak_file .narrowPeak`
 workdir=`pwd`
 
 dir=blk_filtered
@@ -698,14 +887,12 @@ if [ ! -d $dir ]; then
 mkdir $dir
 fi
 
+if [ ! -f $dir/"$peak_filename" ]; then
 blacklist=$extrasettings/%s.blacklist.bed
-fname=`basename $peak_file _peaks.narrowPeak`
-peak=$fname"_peaks.narrowPeak"
-summit=$fname"_summits.bed"
-cat $peak | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > blk_filtered/$peak
-cat $summit | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > blk_filtered/$summit
+cat $peak_file | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > $dir/$peak_filename
+cat $summit | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > $dir/$summit
+fi
 
-cat $workdir/$dir/"$base".narrowPeak | grep -v -e "chrM" | $bedopsbin/sort-bed - | $bedopsbin/bedops -n 1 - $blacklist > $workdir/$dir/"$base".filtered.narrowPeak
 \"\"\" % (config["memebin"], config["bedopsbin"], config["bedtoolsbin"], 
 	config["genome_sequence"], config["samtoolsbin"], 
 	config["makecutmatrixbin"], config["Rscriptbin"],
@@ -715,24 +902,24 @@ cat $workdir/$dir/"$base".narrowPeak | grep -v -e "chrM" | $bedopsbin/sort-bed -
 
 	script3 = \"\"\"
 echo "get fasta"
-$bedtoolsbin/bedtools getfasta -fi $genome_sequence -bed $workdir/$dir/"$base".filtered.narrowPeak -fo $fa_dir/"$base".fa
+$bedtoolsbin/bedtools getfasta -fi $genome_sequence -bed $workdir/$dir/"$peak_filename" -fo $fa_dir/"$mbase".fa
 echo "fix sequence"
-$pythonbin/python fix_sequence.py $fa_dir/"$base".fa
+$pythonbin/python fix_sequence.py $fa_dir/"$mbase".fa
 
 outdir=fimo.%s.result
-for d in $outdir $outdir/$base; do
+for d in $outdir $outdir/$mbase; do
 if [ ! -d $d ]; then
 mkdir $d
 fi
 done
 
 motif=`basename $motif_file .meme`
-fimo_d=$outdir/$base/fimo2.$motif
+fimo_d=$outdir/$mbase/fimo2.$motif
 if [ ! -d $fimo_d ]; then
 mkdir $fimo_d
 fi
 echo "get fimo"
-$memebin/fimo --thresh $p --parse-genomic-coord -oc $fimo_d "$motif".meme $fa_dir/"$base".fa
+$memebin/fimo --thresh $p --parse-genomic-coord -oc $fimo_d "$motif".meme $fa_dir/"$mbase".fa
 
 cur_path=`echo $PATH | tr : "\n" | grep -v $bedopsbin | paste -s -d:`
 unset PATH
@@ -741,32 +928,34 @@ export PATH=$cur_path:$bedopsbin
 $bedopsbin/gff2bed < $fimo_d/fimo.gff | awk 'BEGIN {IFS="   "; OFS="    ";} {print $1,$2,$3,$4,$5,$6}' > $fimo_d/fimo.bed
 \"\"\" % (tf_interest)
 	script4 = \"\"\"
-bamfile=../aligned.aug10/dup.marked/"$mbase".bam
+"""
+
+
+	scripta="""
+bamfile=../aligned.aug10/%s/"$mbase".bam
+
 workdir=`pwd`
 dir=`dirname $bamfile`
-base=`basename $bamfile .bam`
+bambase=`basename $bamfile .bam`
 
 dest=centipede.bam
-outbam=$dest/"$base".bam
+outbam=$dest/"$bambase".bam
 if [ ! -d $dest ]; then
 mkdir $dest
 fi
-if [ ! -f $outbam ]; then
 \"\"\"
 	script5 = \"\"\"
-$samtoolsbin/samtools view -b -h -f 3 -F 4 -F 8 -o $outbam $bamfile
+cd $dest
+ln -s ../../aligned.aug10/%s/"$mbase".bam .
+ln -s ../../aligned.aug10/%s/"$mbase".bam.bai .
+cd ..
 \"\"\"
-	if dedup:
-		script5 = \"\"\"
-$samtoolsbin/samtools view -b -h -f 3 -F 4 -F 8 -F 1024 -o $outbam $bamfile
-\"\"\"
-	script6 = \"\"\"	
-$samtoolsbin/samtools index $outbam
-fi
-\"\"\"
+""" % (bamdir, bamdir, bamdir)
+
+	scriptb="""
 	script7 = \"\"\"
-peakfile=blk_filtered/"$base"_peaks.narrowPeak
-fimo_dir=$outdir/"$base"_peaks
+#peakfile=blk_filtered/"$base"_peaks.narrowPeak
+fimo_dir=$outdir/"$mbase"
 
 for i in `ls -1 $fimo_dir`; do #shows a list of motifs
 echo "Doing $i..."
@@ -783,7 +972,6 @@ done
 	outp.write(script3 + "\\n")
 	outp.write(script4 + "\\n")
 	outp.write(script5 + "\\n")
-	outp.write(script6 + "\\n")
 	outp.write(script7 + "\\n")
 
 	if output is not None:
@@ -804,7 +992,7 @@ if __name__=="__main__":
 	pval = args.pvalue
 	motif_file = args.motif
 	tf_interest = args.name
-"""
+""" 
 	script2 = """
 	outfile = "integrate.footprinting.%%s.centipede.sh" %% tf_interest
 	generate_TF_specific_footprint_script_sh(config, pval, motif_file, tf_interest, output=outfile, dedup=%s)
@@ -817,6 +1005,8 @@ if __name__=="__main__":
 		fw = open(output, "w")
 		outp = fw
 	outp.write(script + "\n")
+	outp.write(scripta + "\n")
+	outp.write(scriptb + "\n")
 	outp.write(script2 + "\n")
 	if output is not None:
 		outp.close()
@@ -836,51 +1026,58 @@ if __name__=="__main__":
 
 	if not os.path.isdir(outdir + "/aligned.aug10"):
 		os.mkdir(outdir + "/aligned.aug10")
-	if not os.path.isdir(outdir + "/macs2.narrow.aug18"):
-		os.mkdir(outdir + "/macs2.narrow.aug18")
-	if not os.path.isdir(outdir + "/macs2.narrow.aug18.dedup"):
-		os.mkdir(outdir + "/macs2.narrow.aug18.dedup")
+
+	dir_create = ["macs2.narrow.aug18", "macs2.broad.aug18", \
+	"macs2.narrow.all.frag.aug18", "macs2.broad.all.frag.aug18", \
+	"macs2.narrow.aug18.dedup", "macs2.broad.aug18.dedup", \
+	"macs2.narrow.all.frag.aug18.dedup", "macs2.broad.all.frag.aug18.dedup", \
+	"seacr.aug12", "seacr.aug12.all.frag", "seacr.aug12.dedup", "seacr.aug12.all.frag.dedup"]
+
+	for dc in dir_create:
+		if not os.path.isdir(outdir + "/" + dc):
+			os.mkdir(outdir + "/" + dc)
 
 	generate_integrated_sh(config, output=outdir+"/integrated.sh")
 	generate_integrated_step2_sh(config, output=outdir+"/aligned.aug10/integrated.step2.sh")
-	generate_integrated_motif_find_sh(config, output=outdir+"/macs2.narrow.aug18/integrate.motif.find.sh")
-	generate_integrated_motif_find_sh(config, output=outdir+"/macs2.narrow.aug18.dedup/integrate.motif.find.sh")
-	generate_integrated_footprinting_sh(config, dedup=False, output=outdir+"/macs2.narrow.aug18/integrate.footprinting.sh")
-	generate_integrated_footprinting_sh(config, dedup=True, output=outdir+"/macs2.narrow.aug18.dedup/integrate.footprinting.sh")
+
+	settings = {\
+	"macs2.narrow.aug18":          {"dedup":False, "is_all_frag":False, "peak":"narrowPeak", "is_seacr":False}, \
+	"macs2.broad.aug18":           {"dedup":False, "is_all_frag":False, "peak":"broadPeak", "is_seacr":False}, \
+	"macs2.narrow.all.frag.aug18": {"dedup":False, "is_all_frag":True,  "peak":"narrowPeak", "is_seacr":False}, \
+	"macs2.broad.all.frag.aug18":  {"dedup":False, "is_all_frag":True,  "peak":"broadPeak", "is_seacr":False}, \
+	"macs2.narrow.all.frag.aug18.dedup":{"dedup":True, "is_all_frag":True, "peak":"narrowPeak", "is_seacr":False}, \
+	"macs2.broad.all.frag.aug18.dedup": {"dedup":True, "is_all_frag":True, "peak":"broadPeak", "is_seacr":False}, \
+	"macs2.narrow.aug18.dedup":{"dedup":True, "is_all_frag":False, "peak":"narrowPeak", "is_seacr":False}, \
+	"macs2.broad.aug18.dedup": {"dedup":True, "is_all_frag":False, "peak":"broadPeak", "is_seacr":False}, \
+	"seacr.aug12":       {"dedup":False, "peak":None, "is_all_frag":False, "is_seacr":True}, \
+	"seacr.aug12.dedup": {"dedup":True,  "peak":None, "is_all_frag":False, "is_seacr":True}, \
+	"seacr.aug12.all.frag":       {"dedup":False, "peak":None, "is_all_frag":True, "is_seacr":True}, \
+	"seacr.aug12.all.frag.dedup": {"dedup":True,  "peak":None, "is_all_frag":True, "is_seacr":True} }
+
+	for dc in dir_create:
+		par = [settings[dc]["dedup"], settings[dc]["is_all_frag"], settings[dc]["peak"], settings[dc]["is_seacr"]]
+		generate_integrated_motif_find_sh(config, peak=par[2], is_seacr=par[3], output=outdir+"/%s/integrate.motif.find.sh" % dc)
+		generate_integrated_footprinting_sh(config, dedup=par[0], is_all_frag=par[1], peak=par[2], is_seacr=par[3], output=outdir+"/%s/integrate.footprinting.sh" % dc)
+		generate_single_locus_script_sh(config, dedup=par[0], output=outdir+"/%s/get_cuts_single_locus.sh" % dc)
+		generate_TF_footprinting_script_sh(config, dedup=par[0], is_all_frag=par[1], peak=par[2], is_seacr=par[3], output=outdir+"/%s/generate.footprinting.factor.specific.centipede.py" % dc)
+
 	generate_integrated_all_steps_sh(output=outdir+"/integrated.all.steps.sh")
-	generate_single_locus_script_sh(config, dedup=False, output=outdir+"/macs2.narrow.aug18/get_cuts_single_locus.sh")
-	generate_single_locus_script_sh(config, dedup=True, output=outdir+"/macs2.narrow.aug18.dedup/get_cuts_single_locus.sh")
-
-	generate_TF_footprinting_script_sh(config, dedup=False, output=outdir+"/macs2.narrow.aug18/generate.footprinting.factor.specific.centipede.py")
-	generate_TF_footprinting_script_sh(config, dedup=True, output=outdir+"/macs2.narrow.aug18.dedup/generate.footprinting.factor.specific.centipede.py")
-
 	make_executable(outdir+"/integrated.sh")
 	make_executable(outdir+"/integrated.all.steps.sh")
 	make_executable(outdir+"/aligned.aug10/integrated.step2.sh")
-	make_executable(outdir+"/macs2.narrow.aug18/integrate.motif.find.sh")
-	make_executable(outdir+"/macs2.narrow.aug18.dedup/integrate.motif.find.sh")
-	make_executable(outdir+"/macs2.narrow.aug18/integrate.footprinting.sh")
-	make_executable(outdir+"/macs2.narrow.aug18.dedup/integrate.footprinting.sh")
-	make_executable(outdir+"/macs2.narrow.aug18/get_cuts_single_locus.sh")
-	make_executable(outdir+"/macs2.narrow.aug18.dedup/get_cuts_single_locus.sh")
-	make_executable(outdir+"/macs2.narrow.aug18/generate.footprinting.factor.specific.centipede.py")
-	make_executable(outdir+"/macs2.narrow.aug18.dedup/generate.footprinting.factor.specific.centipede.py")
 
-	shutil.copyfile("%s/macs2.narrow.aug18/filter.py" % curpath, outdir+"/macs2.narrow.aug18/filter.py")
-	shutil.copyfile("%s/macs2.narrow.aug18/fix_sequence.py" % curpath, outdir+"/macs2.narrow.aug18/fix_sequence.py")
-	shutil.copyfile("%s/macs2.narrow.aug18/read.meme.py" % curpath, outdir+"/macs2.narrow.aug18/read.meme.py")
-	shutil.copyfile("%s/macs2.narrow.aug18/run_centipede_parker.R" % curpath, outdir+"/macs2.narrow.aug18/run_centipede_parker.R")
-	shutil.copyfile("%s/quantify.py" % curpath, outdir+"/macs2.narrow.aug18/quantify.py")
-	shutil.copyfile("%s/quantify_separate.py" % curpath, outdir+"/macs2.narrow.aug18/quantify_separate.py")
-	shutil.copyfile("%s/check_coordinate.py" % curpath, outdir+"/macs2.narrow.aug18/check_coordinate.py")
-
-	shutil.copyfile("%s/macs2.narrow.aug18/filter.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/filter.py")
-	shutil.copyfile("%s/macs2.narrow.aug18/fix_sequence.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/fix_sequence.py")
-	shutil.copyfile("%s/macs2.narrow.aug18/read.meme.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/read.meme.py")
-	shutil.copyfile("%s/macs2.narrow.aug18/run_centipede_parker.R" % curpath, outdir+"/macs2.narrow.aug18.dedup/run_centipede_parker.R")
-	shutil.copyfile("%s/quantify.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/quantify.py")
-	shutil.copyfile("%s/quantify_separate.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/quantify_separate.py")
-	shutil.copyfile("%s/check_coordinate.py" % curpath, outdir+"/macs2.narrow.aug18.dedup/check_coordinate.py")
+	for dc in dir_create:
+		make_executable(outdir+"/%s/integrate.motif.find.sh" % dc)
+		make_executable(outdir+"/%s/integrate.footprinting.sh" % dc)
+		make_executable(outdir+"/%s/get_cuts_single_locus.sh" % dc)
+		make_executable(outdir+"/%s/generate.footprinting.factor.specific.centipede.py" % dc)
+		shutil.copyfile("%s/macs2.narrow.aug18/filter.py" % (curpath), outdir+"/%s/filter.py" % dc)
+		shutil.copyfile("%s/macs2.narrow.aug18/fix_sequence.py" % (curpath), outdir+"/%s/fix_sequence.py" % dc)
+		shutil.copyfile("%s/macs2.narrow.aug18/read.meme.py" % (curpath), outdir+"/%s/read.meme.py" % dc)
+		shutil.copyfile("%s/macs2.narrow.aug18/run_centipede_parker.R" % (curpath), outdir+"/%s/run_centipede_parker.R" % dc)
+		shutil.copyfile("%s/quantify.py" % curpath, outdir+"/%s/quantify.py" % dc)
+		shutil.copyfile("%s/quantify_separate.py" % curpath, outdir+"/%s/quantify_separate.py" % dc)
+		shutil.copyfile("%s/check_coordinate.py" % curpath, outdir+"/%s/check_coordinate.py" % dc)
 
 	shutil.copyfile(sys.argv[1], outdir+"/current_config.json")
 

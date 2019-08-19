@@ -7,12 +7,15 @@ To get started, please see [INSTALL.md](INSTALL.md) about how to set up the pipe
 
 Once the package is installed, please see [USAGE.md](USAGE.md) about usage. Basic usage is provided below.
 
-If you run into issues and would like to report them, you can use the "Issues" tab on the left hand side. Alternatively, you can contact me or one of corresponding authors: see contact information zqian{at}jimmy.harvard.edu, stuart_orkin{at}dfci.harvard.edu, or gcyuan{at}jimmy.harvard.edu.
+If you run into issues and would like to report them, you can use the "Issues" tab on the left hand side. Alternatively, you can contact me or one of corresponding authors: zqian{at}jimmy.harvard.edu, stuart_orkin{at}dfci.harvard.edu, or gcyuan{at}jimmy.harvard.edu.
 
 ## Citation
 
 https://www.biorxiv.org/content/10.1101/529081v1.abstract
 
+## What's New
+
+8/19/19: Added support for SEACR, analysis involving larger fragments (>120bp)
 
 ## Basic Usage
 
@@ -137,11 +140,24 @@ sbatch ./integrated.sh CR_BCL11A_W9_r1_S17_R1_001.fastq.gz
 ```
 The parameter is the fastq file. Even though we specify the _R1_001.fastq.gz, CUT&RUNTools actually checks that both forward and reverse fastq files are present. Always use the _R1_001 of the pair as parameter of this command.
 
-Step 2. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size.
+Step 2. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size. It then performs peak calling using both MACS2 and SEACR. Based on the results, users can choose to proceed with either MACS2 or SEACR's results.
+
 ```bash
 cd aligned.aug10
 sbatch ./integrated.step2.sh CR_BCL11A_W9_r1_S17_aligned_reads.bam
 ```
+
+After this step, the following directories (from varying peak calling settings) are generated:
+
+* MACS2: `../macs2.(narrow/broad)[.all.frag].aug18[.dedup]`: `()` designates required, `[]` designates optional:
+`(narrow/broad)`: narrowPeak or broadPeak calling setting.
+`[.dedup]`: with dedup or without dedup (this flag would be absent). Dedup means duplicate fragments removed.
+`[.all.frag]`: using all fragments or <120bp (this flag would be absent)
+* SEACR: `../seacr.aug12[.all.frag][.dedup]`: `()` designates required, `[]` designates optional:
+`[.dedup]`: with dedup or without dedup (this flag would be absent)
+`[.all.frag]`: using all fragments or <120bp (this flag would be absent)
+SEACR directories generate both stringent and relaxed peaks.
+
 
 Step 3. **Motif finding.** CUT&RUNTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
 ```bash
@@ -152,6 +168,12 @@ By default, CUT&RUNTools keeps duplicate fragments. If instead users wish to use
 ```bash
 cd ../macs2.narrow.aug18.dedup
 sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
+```
+Similar procedure applies to other peak calling directories if users want to apply motif finding for broadPeaks, all fragment resutls, or SEACR peaks.
+```bash
+#SEACR
+cd ../seacr.aug12.all.frag
+sbatch ./integrate.motif.find.sh GATA1_D7_30min_chr11_aligned_reads_treat.stringent.sort.bed
 ```
 
 Step 4. **Motif footprinting.**
