@@ -149,14 +149,25 @@ sbatch ./integrated.step2.sh CR_BCL11A_W9_r1_S17_aligned_reads.bam
 
 After this step, the following directories (from varying peak calling settings) are generated:
 
-* MACS2: `../macs2.(narrow/broad)[.all.frag].aug18[.dedup]`: `()` designates required, `[]` designates optional:
+* MACS2:
+
+`../macs2.(narrow/broad)[.all.frag].aug18[.dedup]`: `()` designates required, `[]` designates optional:
+
 `(narrow/broad)`: narrowPeak or broadPeak calling setting.
+
 `[.dedup]`: with dedup or without dedup (this flag would be absent). Dedup means duplicate fragments removed.
+
 `[.all.frag]`: using all fragments or <120bp (this flag would be absent)
-* SEACR: `../seacr.aug12[.all.frag][.dedup]`: `()` designates required, `[]` designates optional:
+
+* SEACR: `
+
+../seacr.aug12[.all.frag][.dedup]`: `()` designates required, `[]` designates optional:
+
 `[.dedup]`: with dedup or without dedup (this flag would be absent)
+
 `[.all.frag]`: using all fragments or <120bp (this flag would be absent)
-SEACR directories generate both stringent and relaxed peaks.
+
+The SEACR analysis generates both stringent and relaxed peaks.
 
 
 Step 3. **Motif finding.** CUT&RUNTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
@@ -169,7 +180,7 @@ By default, CUT&RUNTools keeps duplicate fragments. If instead users wish to use
 cd ../macs2.narrow.aug18.dedup
 sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
 ```
-Similar procedure applies to other peak calling directories if users want to apply motif finding for broadPeaks, all fragment resutls, or SEACR peaks.
+Similar procedure applies to other peak calling directories if users want to apply motif finding for broadPeaks, all fragment results, or SEACR peaks.
 ```bash
 #SEACR
 cd ../seacr.aug12.all.frag
