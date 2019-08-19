@@ -22,6 +22,7 @@ In the bracket is the version we have. CutRunTools may work with a lower version
 * UCSC-tools [link](http://hgdownload.soe.ucsc.edu/admin/exe/)- we provide special install instructions.
 
 Other tools already contained in CUT&RUNTools:
+
 * Samblaster [link](https://github.com/GregoryFaust/samblaster)
 * SEACR [link](https://github.com/FredHutch/SEACR)
 
