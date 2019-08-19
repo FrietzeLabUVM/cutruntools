@@ -149,24 +149,31 @@ sbatch ./integrated.step2.sh CR_BCL11A_W9_r1_S17_aligned_reads.bam
 
 After this step, CUT&RUNTools has varied through different peak calling settings and generated multiple results for these settings in the following directories. Users need to **select only one** to go to steps 3 & 4.
 
-* Directories `../macs2.(narrow/broad)[.all.frag].aug18[.dedup]`: `()` designates required, `[]` designates optional. MACS2.
-    * `(narrow/broad)`: narrowPeak or broadPeak calling setting.
-    * `[.dedup]`: with dedup or without dedup (this flag would be absent). Dedup means duplicate fragments removed.
-    * `[.all.frag]`: using all fragments or <120bp (this flag would be absent)
-* Directories `../seacr.aug12[.all.frag][.dedup]`: `()` designates required, `[]` designates optional. SEACR.
-    * `[.dedup]`: with dedup or without dedup (this flag would be absent)
-    * `[.all.frag]`: using all fragments or <120bp (this flag would be absent)
-    * The SEACR analysis generates both stringent and relaxed peaks.
+| Directory (in `../`) | Tool | Config    | Fragments | Use duplicates (y/n) |
+| ---------------------|------|-----------|-----------|----------------------|
+|macs2.narrow.aug18         | MACS2| narrowPeak| <120bp | y |
+|macs2.broad.aug18          | MACS2| broadPeak | <120bp | y |
+|macs2.narrow.all.frag.aug18| MACS2| narrowPeak| all    | y |
+|macs2.broad.all.frag.aug18 | MACS2| broadPeak | all    | y |
+|macs2.narrow.aug18.dedup   | MACS2| narrowPeak| <120bp | n |
+|macs2.broad.aug18.dedup    | MACS2| broadPeak | <120bp | n |
+|macs2.narrow.all.frag.aug18.dedup | MACS2| narrowPeak| all    | n |
+|macs2.broad.all.frag.aug18.dedup  | MACS2| broadPeak | all    | n |
+|seacr.aug12                | SEACR| stringent | <120bp | y |
+|seacr.aug12.all.frag       | SEACR| stringent | all    | y |
+|seacr.aug12.dedup          | SEACR| stringent | <120bp | n | 
+|seacr.aug12.all.frag.dedup | SEACR| stringent | all    | n |
+
 * Which directory to use: if **TF CUT&RUN**, I prefer **macs2.narrow.aug18** or **macs2.narrow.aug18.dedup**. If **histone CUT&RUN**, use **macs2.broad.all.frag.aug18**. If **SEACR**, use **seacr.aug12.all.frag** (histone) or **seacr.aug12** (TF) and use the **stringent** peaks within each folder.
 
 Step 3. **Motif finding.** CUT&RUNTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
 ```bash
+#Use macs2.narrow.aug18 or any of the peak calling result directory in the above table
 cd ../macs2.narrow.aug18
-sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
-```
-By default, CUT&RUNTools keeps duplicate fragments. If instead users wish to use deduplicate version, 
-```bash
-cd ../macs2.narrow.aug18.dedup
+#For narrow setting, the peak file ends in .narrowPeak
+#For broad setting, the peak file ends in .broadPeak
+#For seacr setting, the peak file ends in .stringent.sort.bed
+#Use the right peak file accordingly
 sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
 ```
 Similar procedure applies in other peak calling directories for broadPeaks, all fragment results, or SEACR peaks.
