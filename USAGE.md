@@ -103,11 +103,46 @@ sbatch ./integrated.sh GATA1_D7_30min_chr11_R2_001.fastq.gz
 ```
 The parameter is the fastq file. Even though we specify the _R1_001.fastq.gz, CUT&RUNTools actually checks that both forward and reverse fastq files are present. Always use the _R1_001 of the pair as parameter of this command.
 
-Step 2. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size.
+Step 2. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size. Then it performs peak calling using MACS2 and SEACR. It runs both.
 ```bash
 cd aligned.aug10
 sbatch ./integrated.step2.sh GATA1_D7_30min_chr11_aligned_reads.bam
 ```
+
+CUT&RUNTools varies through different peak calling settings and generated multiple results for these settings in the following directories. Based on the results, users should **select only one setting** to go to steps 3 & 4.
+
+| Directory                         | Tool | Config    | Fragments | Use duplicates (y/n) |
+| ----------------------------------|------|-----------|-----------|----------------------|
+| macs2.narrow.aug18                | MACS2| narrowPeak| <120bp    | y                    |
+| macs2.broad.aug18                 | MACS2| broadPeak | <120bp    | y                    |
+| macs2.narrow.all.frag.aug18       | MACS2| narrowPeak| all       | y                    |
+| macs2.broad.all.frag.aug18        | MACS2| broadPeak | all       | y                    |
+| macs2.narrow.aug18.dedup          | MACS2| narrowPeak| <120bp    | n                    |
+| macs2.broad.aug18.dedup           | MACS2| broadPeak | <120bp    | n                    |
+| macs2.narrow.all.frag.aug18.dedup | MACS2| narrowPeak| all       | n                    |
+| macs2.broad.all.frag.aug18.dedup  | MACS2| broadPeak | all       | n                    |
+| seacr.aug12                       | SEACR| stringent | <120bp    | y                    |
+| seacr.aug12.all.frag              | SEACR| stringent | all       | y                    |
+| seacr.aug12.dedup                 | SEACR| stringent | <120bp    | n                    | 
+| seacr.aug12.all.frag.dedup        | SEACR| stringent | all       | n                    |
+
+* `../macs2.narrow.aug18`. MACS2, narrowPeak, <120bp fragments, with duplicates.
+* `../macs2.broad.aug18`. MACS2, broadPeak, <120bp fragments, with duplicates.
+* `../macs2.narrow.all.frag.aug18`. MACS2, narrowPeak, all fragments, with duplicates.
+* `../macs2.broad.all.frag.aug18`. MACS2, broadPeak, all fragments, with duplicates.
+* `../macs2.narrow.aug18.dedup`. MACS2, narrowPeak, all fragments, removing duplicates.
+* `../macs2.broad.aug18.dedup`. MACS2, broadPeak, all fragments, removing duplicates.
+* `../macs2.narrow.all.frag.aug18.dedup`. MACS2, narrowPeak, all fragments, removing duplicates.
+
+* Directories `../macs2.(narrow/broad)[.all.frag].aug18[.dedup]`: `()` designates required, `[]` designates optional. MACS2.
+    * `(narrow/broad)`: narrowPeak or broadPeak calling setting.
+    * `[.dedup]`: with dedup or without dedup (this flag would be absent). Dedup means duplicate fragments removed.
+    * `[.all.frag]`: using all fragments or <120bp (this flag would be absent)
+* Directories `../seacr.aug12[.all.frag][.dedup]`: `()` designates required, `[]` designates optional. SEACR.
+    * `[.dedup]`: with dedup or without dedup (this flag would be absent)
+    * `[.all.frag]`: using all fragments or <120bp (this flag would be absent)
+    * The SEACR analysis generates both stringent and relaxed peaks.
+* Which directory to use: if **TF CUT&RUN**, I prefer **macs2.narrow.aug18** or **macs2.narrow.aug18.dedup**. If **histone CUT&RUN**, use **macs2.broad.all.frag.aug18**. If **SEACR**, use **seacr.aug12.all.frag** (histone) or **seacr.aug12** (TF) and use the **stringent** peaks within each folder.
 
 Step 3. **Motif finding.** CUT&RUNTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
 ```bash
@@ -118,6 +153,12 @@ By default, CUT&RUNTools keeps duplicate fragments. If instead users wish to use
 ```bash
 cd ../macs2.narrow.aug18.dedup
 sbatch ./integrate.motif.find.sh GATA1_D7_30min_chr11_aligned_reads_peaks.narrowPeak
+```
+Similar procedure applies in other peak calling directories for broadPeaks, all fragment results, or SEACR peaks.
+```bash
+#SEACR
+cd ../seacr.aug12.all.frag
+sbatch ./integrate.motif.find.sh GATA1_D7_30min_chr11_aligned_reads_treat.stringent.sort.bed
 ```
 
 Step 4. **Motif footprinting.**

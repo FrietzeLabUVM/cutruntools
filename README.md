@@ -147,7 +147,7 @@ cd aligned.aug10
 sbatch ./integrated.step2.sh CR_BCL11A_W9_r1_S17_aligned_reads.bam
 ```
 
-After this step, CUT&RUNTools has varied through different peak calling settings and generated multiple results in these directories. Users only select one to go to steps 3 & 4.
+After this step, CUT&RUNTools has varied through different peak calling settings and generated multiple results for these settings in the following directories. Users need to **select only one** to go to steps 3 & 4.
 
 * Directories `../macs2.(narrow/broad)[.all.frag].aug18[.dedup]`: `()` designates required, `[]` designates optional. MACS2.
     * `(narrow/broad)`: narrowPeak or broadPeak calling setting.
@@ -157,7 +157,7 @@ After this step, CUT&RUNTools has varied through different peak calling settings
     * `[.dedup]`: with dedup or without dedup (this flag would be absent)
     * `[.all.frag]`: using all fragments or <120bp (this flag would be absent)
     * The SEACR analysis generates both stringent and relaxed peaks.
-* Which directory to use: if **TF CUT&RUN**, I prefer **macs2.narrow.aug18** or **macs2.narrow.aug18.dedup**. If **histone**, use **macs2.broad.all.frag.aug18**. If **SEACR**, use **seacr.aug12.all.frag** (histone) or **seacr.aug12** (TF) and use the **stringent** peaks within each folder.
+* Which directory to use: if **TF CUT&RUN**, I prefer **macs2.narrow.aug18** or **macs2.narrow.aug18.dedup**. If **histone CUT&RUN**, use **macs2.broad.all.frag.aug18**. If **SEACR**, use **seacr.aug12.all.frag** (histone) or **seacr.aug12** (TF) and use the **stringent** peaks within each folder.
 
 Step 3. **Motif finding.** CUT&RUNTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
 ```bash
