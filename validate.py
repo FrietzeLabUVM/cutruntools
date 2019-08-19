@@ -92,6 +92,16 @@ if __name__=="__main__":
 		sys.exit(1)
 	if not check_program_exists(config["adapterpath"], "Truseq3.PE.fa"):
 		sys.exit(1)
+	if not check_program_exists(config["extratoolsbin"], "SEACR_1.1.sh"):
+		sys.exit(1)
+	if not check_program_exists(config["extratoolsbin"], "SEACR_1.1.R"):
+		sys.exit(1)
+	if not check_program_exists(config["extratoolsbin"], "change.bdg.py"):
+		sys.exit(1)
+	if not check_program_exists(config["extratoolsbin"], "get_summits_seacr.py"):
+		sys.exit(1)
+	if not check_program_exists(config["extratoolsbin"], "get_summits_broadPeak.py"):
+		sys.exit(1)
 
 	#check genome sequence exists, and check bowtie2 indices
 	if not args["ignore_input_output"]:

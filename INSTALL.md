@@ -21,6 +21,10 @@ In the bracket is the version we have. CutRunTools may work with a lower version
 * Atactk [link](https://github.com/ParkerLab/atactk)- we provide special install instructions since we need to patch a source file.
 * UCSC-tools [link](http://hgdownload.soe.ucsc.edu/admin/exe/)- we provide special install instructions.
 
+Other tools already contained in CUT&RUNTools:
+* Samblaster [link](https://github.com/GregoryFaust/samblaster)
+* SEACR [link](https://github.com/FredHutch/SEACR)
+
 ### Atactk
 
 This is a [python2 package](https://github.com/ParkerLab/atactk) that determines the enzyme cut frequency matrix. Originally for Tn5 transposase in ATAC-seq, the logic of the tool also applies to other digestions like CUT&RUN. 
