@@ -15,7 +15,7 @@ https://www.biorxiv.org/content/10.1101/529081v1.abstract
 
 ## What's New
 
-8/19/19: Added support for SEACR, analysis involving larger fragments (>120bp)
+8/19/19: Added support for SEACR, support for analysis involving larger fragments (>120bp). Changes are in step 2.
 
 ## Basic Usage
 
@@ -140,7 +140,7 @@ sbatch ./integrated.sh CR_BCL11A_W9_r1_S17_R1_001.fastq.gz
 ```
 The parameter is the fastq file. Even though we specify the _R1_001.fastq.gz, CUT&RUNTools actually checks that both forward and reverse fastq files are present. Always use the _R1_001 of the pair as parameter of this command.
 
-Step 2. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size. It then performs peak calling using both MACS2 and SEACR. Based on the results, users can choose to proceed with either MACS2 or SEACR's results.
+Step 2. **BAM processing, peak calling.** It marks duplicates in bam files, and filter fragments by size. It then performs peak calling using both **MACS2 and SEACR**. Based on the results, users can choose to proceed with either MACS2 or SEACR's results.
 
 ```bash
 cd aligned.aug10
