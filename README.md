@@ -166,6 +166,8 @@ After this step, CUT&RUNTools has varied through different peak calling settings
 
 * Which directory to use: if **TF CUT&RUN**, I prefer **macs2.narrow.aug18** or **macs2.narrow.aug18.dedup**. If **histone CUT&RUN**, use **macs2.broad.all.frag.aug18**. If **SEACR**, use **seacr.aug12.all.frag** (histone) or **seacr.aug12** (TF) and use the **stringent** peaks within each folder.
 
+* For peaks involving large fragment fraction (>120bp), use the peak calling directories that end in `*.all.frag` (e.g. macs2.broad.all.frag.aug18). 
+
 Step 3. **Motif finding.** CUT&RUNTools uses MEME-chip for de novo motif finding on sequences surrounding the peak summits.
 ```bash
 #Use macs2.narrow.aug18 or any of the peak calling result directory in the above table
@@ -186,6 +188,10 @@ sbatch ./integrate.motif.find.sh GATA1_D7_30min_chr11_aligned_reads_treat.string
 Step 4. **Motif footprinting.**
 ```bash
 cd ../macs2.narrow.aug18
+#For narrow setting, the peak file ends in .narrowPeak
+#For broad setting, the peak file ends in .broadPeak
+#For seacr setting, the peak file ends in .stringent.sort.bed
+#Use the right peak file accordingly
 sbatch ./integrate.footprinting.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
 ```
 Beautiful footprinting figures will be located in the directory `fimo.result`. Footprinting figures are created for every motif found by MEME-chip, but only the right motif (associated with TF) will have a proper looking shape. Users can scan through all the motifs' footprints.
