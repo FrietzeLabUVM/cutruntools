@@ -147,7 +147,7 @@ cd aligned.aug10
 sbatch ./integrated.step2.sh CR_BCL11A_W9_r1_S17_aligned_reads.bam
 ```
 
-After this step, the following directories (from varying peak calling settings) are generated:
+After this step, CUT&RUNTools has varied different peak calling settings and generated multiple directories, each of which corresponds to a setting:
 
 * Directories `../macs2.(narrow/broad)[.all.frag].aug18[.dedup]`: `()` designates required, `[]` designates optional. MACS2.
     * `(narrow/broad)`: narrowPeak or broadPeak calling setting.
@@ -169,7 +169,7 @@ By default, CUT&RUNTools keeps duplicate fragments. If instead users wish to use
 cd ../macs2.narrow.aug18.dedup
 sbatch ./integrate.motif.find.sh CR_BCL11A_W9_r1_S17_aligned_reads_peaks.narrowPeak
 ```
-Similar procedure applies to other peak calling directories if users want to apply motif finding for broadPeaks, all fragment results, or SEACR peaks.
+Similar procedure applies in other peak calling directories for broadPeaks, all fragment results, or SEACR peaks.
 ```bash
 #SEACR
 cd ../seacr.aug12.all.frag
