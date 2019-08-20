@@ -147,7 +147,7 @@ sbatch ./integrated.step2.sh CR_BCL11A_W9_r1_S17_aligned_reads.bam
 
 After this step, CUT&RUNTools has varied through different peak calling settings and generated multiple results for these settings in the following directories. Users need to **select only one** to go to steps 3 & 4.
 
-| Directory (in `../`) | Tool | Config    | Fragments | Use duplicates (y/n) |
+| Result Directory (in `../`) | Tool | Config    | Fragments used | Use duplicates (y/n) |
 | ---------------------|------|-----------|-----------|----------------------|
 |macs2.narrow.aug18         | MACS2| narrowPeak| <120bp | y |
 |macs2.broad.aug18          | MACS2| broadPeak | <120bp | y |
