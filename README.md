@@ -11,6 +11,8 @@ If you run into issues and would like to report them, you can use the "Issues" t
 
 Read our [paper](https://www.biorxiv.org/content/10.1101/529081v1.abstract). Sign up for cutruntools [Google group mailing list](https://groups.google.com/forum/#!forum/cutruntools) to ask questions, receive updates.
 
+CUT&RUNTools is released under [GPL license version 2](https://opensource.org/licenses/GPL-2.0).
+
 ## What's New
 
 8/19/19: Added support for SEACR, support for analysis involving larger fragments (>120bp). Changes are in step 2.
