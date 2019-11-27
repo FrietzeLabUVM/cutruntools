@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
 	gzFile fp2;
 	fp2 = gzopen(argv[3], "wb");
 
+	//master branch
 	int default_cut_index = 6;
 	if(rd_len>=149 && rd_len<=151){
 		default_cut_index = 100;
