@@ -24,6 +24,16 @@ int main(int argc, char *argv[])
 	gzFile fp2;
 	fp2 = gzopen(argv[3], "wb");
 
+	int default_cut_index = 6;
+	if(rd_len>=149 && rd_len<=151){
+		default_cut_index = 100;
+	}else if(rd_len>=74 && rd_len<=76){
+		default_cut_index = 35;
+	}else{
+		default_cut_index = 6;
+	}
+
+
 	while ((l = kseq_read(seq)) >= 0) {
 		//printf("name: %s\n", seq->name.s);
 		//if (seq->comment.l)
@@ -31,7 +41,7 @@ int main(int argc, char *argv[])
 		//printf("seq: %s ", seq->seq.s);
 		int cut_index = -1;
 		if(strlen(seq->seq.s)==rd_len){
-			cut_index = 6;			
+			cut_index = default_cut_index;			
 /*			
 			for(ind = 6; ind>=1; ind--){ //previously ind>=3
 				a[ind] = '\0';
