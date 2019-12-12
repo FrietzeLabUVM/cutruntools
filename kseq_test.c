@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 	int rd_len = atoi(argv[2]);
 	seq = kseq_init(fp);
 	int ind = 0;
-	char seq2[50];
+	char seq2[200];
 	char a[] = "AGATCG";
 
 	//outfile
