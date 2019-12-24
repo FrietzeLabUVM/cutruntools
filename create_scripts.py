@@ -934,7 +934,7 @@ cur_path=`echo $PATH | tr : "\n" | grep -v $bedopsbin | paste -s -d:`
 unset PATH
 export PATH=$cur_path:$bedopsbin
 
-$bedopsbin/gff2bed < $fimo_d/fimo.gff | awk 'BEGIN {IFS="   "; OFS="    ";} {print $1,$2,$3,$4,$5,$6}' > $fimo_d/fimo.bed
+$bedopsbin/gff2bed < $fimo_d/fimo.gff | awk 'BEGIN {IFS="\t"; OFS="\t";} {print $1,$2,$3,$4,$5,$6}' > $fimo_d/fimo.bed
 \"\"\" % (tf_interest)
 	script4 = \"\"\"
 """
@@ -969,7 +969,7 @@ fimo_dir=$outdir/"$mbase"
 for i in `ls -1 $fimo_dir`; do #shows a list of motifs
 echo "Doing $i..."
 fimo_d=$fimo_dir/$i
-tmp=`echo $i|cut -d "." -f3|wc -c`
+tmp=`cat $motif_file |grep "MOTIF"|cut -d" " -f3|wc -c`
 mlen=$(( tmp - 1 ))
 $makecutmatrixbin/make_cut_matrix -v -b '(25-150 1)' -d -o 0 -r 100 -p 1 -f 3 -F 4 -F 8 -q 0 $outbam $fimo_d/fimo.bed > $fimo_d/fimo.cuts.freq.txt
 $Rscriptbin/Rscript run_centipede_parker.R $fimo_d/fimo.cuts.freq.txt $fimo_d/fimo.bed $fimo_d/fimo.png $mlen
