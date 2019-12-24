@@ -9,6 +9,10 @@ def read_summary(n):
 	alist = []
 	for l in f:
 		l = l.rstrip("\n")
+		if l.startswith("#"):
+			continue
+		if l=="":
+			continue
 		ll = l.split("\t")
 		cx = dict(zip(h, ll))
 		alist.append(cx)
