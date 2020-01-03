@@ -1,6 +1,6 @@
-# CutRunTools Installation
+# CUT&RUNTools Installation
 
-CutRunTools requires Python 2.7, R 3.3, Java, Perl 5 and [Slurm](https://slurm.schedmd.com/) job submission environment. It is designed to run on a cluster set up.
+CUT&RUNTools requires Python 2.7, R 3.3, Java, Perl 5 and [Slurm](https://slurm.schedmd.com/) job submission environment. It is designed to run on a cluster set up.
 
 Installation also requires GCC to compile some C-based source code. 
 
@@ -8,7 +8,7 @@ Installation also requires GCC to compile some C-based source code.
 
 The following tools should be already installed. Check the corresponding website to see how to install them if not. Special notes for Atactk and UCSC-tools, see below.
 
-In the bracket is the version we have. CutRunTools may work with a lower version of each tool. 
+In the bracket is the version we have. CUT&RUNTools may work with a lower version of each tool. 
 
 * Trimmomatic (0.36) [link](http://www.usadellab.org/cms/?page=trimmomatic)
 * Bowtie2 (2.2.9) [link](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
@@ -25,6 +25,35 @@ Other tools already contained in CUT&RUNTools:
 
 * Samblaster [link](https://github.com/GregoryFaust/samblaster)
 * SEACR [link](https://github.com/FredHutch/SEACR)
+
+### A note about Anaconda
+
+If you are a conda/bioconda user, you can already obtain the pre-requisite softwares above from the bioconda package repository:
+
+```
+conda info -e
+# conda environments:
+#
+base                     *  /home/qzhu/anaconda2
+bedGraphToBigWig            /home/qzhu/anaconda2/envs/bedGraphToBigWig
+bedops                      /home/qzhu/anaconda2/envs/bedops
+bedtools                    /home/qzhu/anaconda2/envs/bedtools
+bowtie2                     /home/qzhu/anaconda2/envs/bowtie2
+deeptools                   /home/qzhu/anaconda2/envs/deeptools
+macs2                       /home/qzhu/anaconda2/envs/macs2
+samtools                    /home/qzhu/anaconda2/envs/samtools
+trimmomatic                 /home/qzhu/anaconda2/envs/trimmomatic
+```
+
+### A note about other Linux systems
+
+If you are using Ubuntu Linux 18.04 or above, obtaining and installing the pre-requisites should be in most cases pretty simple. 
+You can either use the `apt-get install` command to install things like `bedops`, `bedtools`, `bowtie2`. For other packages that are not in the Ubuntu package manager, 
+they can be installed by going to the official channel, downloading the source tar file, extracting it, and doing `./configure --prefix=/usr/local` followed by `make && make install`.
+
+On my system, which is the Harvard Medical School O2 Computing Cluster, these pre-requisites have been pre-installed (see `module spider`), so there is no need to worry about them
+if you are a user from the HMS community.
+
 
 ### Atactk
 
