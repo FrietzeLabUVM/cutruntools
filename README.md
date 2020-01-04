@@ -109,7 +109,7 @@ section **input/output**: **fastq_directory** (line 22), **workdir** (line 23), 
 ```bash
 ./validate.py config.json
 ```
-This script checks that your configuration file is correct and all paths are correct.
+This script checks that your configuration file is correct and all paths are correct. You will get an empty line if the validate.py runs without errors.
 ```bash
 ./create_scripts.py config.json
 ```
