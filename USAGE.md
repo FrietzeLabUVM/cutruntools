@@ -309,11 +309,13 @@ CUT&RUNTools allows users to obtain a single nucleotide resolution cut profile f
 
 This will require a bam file that CUT&RUNTools created (preferrably a bam in `aligned.aug18/dup.marked.120bp` folder), and a region of interest (in the format chr11:5245029-5303165).
 
-The script that is needed is `get_cuts_single_locus.sh`. There is one copy of this in `macs2.narrow.aug18`, and in each peak calling result directory.
+The script that is needed is `get_cuts_single_locus.sh`. There is one copy of this in `macs2.narrow.aug18` in the work directory, and in each peak calling result directory in the work directory.
 Use the script in the appropriate peak calling directory for your purpose (for example, if TF, use macs2.narrow.aug18, but if histone, use macs2.broad.all.frag.aug18).
 
 ```
 #construct single locus profile keeping duplicates in bam
+pwd
+/n/scratch2/qz64/workdir
 cd macs2.narrow.aug18/
 ./get_cuts_single_locus.sh chr11:5245029-5303165 ../aligned.aug10/dup.marked.120bp/GATA1_D7_30min_chr11_aligned_reads.bam single.locus
 ```
