@@ -68,6 +68,8 @@ samtools                    /home/qzhu/anaconda2/envs/samtools
 trimmomatic                 /home/qzhu/anaconda2/envs/trimmomatic
 ```
 
+You still need to follow the custom Atactk and UCSC-tools instructions above.
+
 ### A note about other Linux systems
 
 If you are using Ubuntu Linux 18.04 or above, obtaining and installing the pre-requisites should be in most cases pretty simple. 
@@ -216,6 +218,23 @@ It can be run directly from the directory containing the CutRunTools scripts.
 
 The main program consists of `create_scripts.py`, `validate.py`, and a set of scripts in `aligned.aug10`, and in `macs2.narrow.aug18` which perform the important motif finding and footprinting analyses.
 
+So for a typical user, we would suggest download CUT&RUNTools from repository and extract it to a more permanent location (like `~/cutruntools-scripts` or `/usr/local/cutruntools-scripts`).
+
+```
+#download the CUT&RUNTool from repository: https://bitbucket.org/qzhudfci/cutruntools/get/1806e65e5b28.zip
+unzip 1806e65e5b28.zip
+cd qzhudfci-cutruntools-1806e65e5b28
+#copy it in a more permanent location like home directory
+mkdir ~/cutruntools-scripts
+cp -r * ~/cutruntools-scripts/.
+```
+
 See [USAGE.md](USAGE.md) for details. Briefly, a user writes a `config.json` configuration file for a new analysis. CutRunTools uses this to generate a set of slurm-based job-submission scripts, customized to the user's samples and environment. These job-submission scripts can be directly used by the user to start analyzing his/her Cut&Run samples.
 
-
+```
+#Example
+#Use the config.json from ~/cutruntools-scripts as a template for a new analysis
+cp ~/cutruntools-scripts/config.json config.jan4.json
+#modify config.jan4.json to your samples and needs
+~/cutruntools-scripts/create_scripts.py config.jan4.json
+```
