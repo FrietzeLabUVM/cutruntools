@@ -237,4 +237,5 @@ See [USAGE.md](USAGE.md) for details. Briefly, a user writes a `config.json` con
 cp ~/cutruntools-scripts/config.json config.jan4.json
 #modify config.jan4.json to your samples and needs
 ~/cutruntools-scripts/create_scripts.py config.jan4.json
+#the SLURM-based job submission scripts would now have been created. See USAGE.md how to continue.
 ```
