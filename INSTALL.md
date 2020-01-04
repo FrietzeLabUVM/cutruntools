@@ -218,15 +218,15 @@ It can be run directly from the directory containing the CutRunTools scripts.
 
 The main program consists of `create_scripts.py`, `validate.py`, and a set of scripts in `aligned.aug10`, and in `macs2.narrow.aug18` which perform the important motif finding and footprinting analyses.
 
-So for a typical user, we would suggest download CUT&RUNTools from repository and extract it to a more permanent location (like `~/cutruntools-scripts` or `/usr/local/cutruntools-scripts`).
+We suggest placing the CUT&RUNTools scripts to a more permanent location (like `~/cutruntools-scripts` or `/usr/local/cutruntools-scripts`). For example:
 
 ```
-#download the CUT&RUNTool from repository: https://bitbucket.org/qzhudfci/cutruntools/get/1806e65e5b28.zip
-unzip 1806e65e5b28.zip
-cd qzhudfci-cutruntools-1806e65e5b28
+#suppose this is where cutruntools scripts are downloaded to:
+pwd
+/home/qz64/Downloads/qzhudfci-cutruntools-1806e65e5b28
 #copy it in a more permanent location like home directory
 mkdir ~/cutruntools-scripts
-cp -r * ~/cutruntools-scripts/.
+cp -r /home/qz64/Downloads/qzhudfci-cutruntools-1806e65e5b28/* ~/cutruntools-scripts/.
 ```
 
 See [USAGE.md](USAGE.md) for details. Briefly, a user writes a `config.json` configuration file for a new analysis. CutRunTools uses this to generate a set of slurm-based job-submission scripts, customized to the user's samples and environment. These job-submission scripts can be directly used by the user to start analyzing his/her Cut&Run samples.
