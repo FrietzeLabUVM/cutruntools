@@ -84,13 +84,14 @@ section **input/output**: **fastq_directory** (line 22), **workdir** (line 23), 
 
 ### Create job submission scripts
 ```bash
-./create_scripts.py config.json
-```
-This creates a set of Slurm job-submission scripts based on the configuration file above (named config.json) in the `workdir` directory. The scripts can be directly, easily executed.
-```bash
 ./validate.py config.json
 ```
 This script checks that your configuration file is correct and all paths are correct.
+
+```bash
+./create_scripts.py config.json
+```
+This creates a set of Slurm job-submission scripts based on the configuration file above (named config.json) in the `workdir` directory. The scripts can be directly, easily executed.
 
 ### Four-step process for executing CUT&RUNTools
 
