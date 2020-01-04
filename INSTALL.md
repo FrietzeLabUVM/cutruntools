@@ -26,9 +26,32 @@ Other tools already contained in CUT&RUNTools:
 * Samblaster [link](https://github.com/GregoryFaust/samblaster)
 * SEACR [link](https://github.com/FredHutch/SEACR)
 
+
+### Atactk
+
+This is a [python2 package](https://github.com/ParkerLab/atactk) that determines the enzyme cut frequency matrix. Originally for Tn5 transposase in ATAC-seq, the logic of the tool also applies to other digestions like CUT&RUN. 
+However since original implementation is designed for ATAC-seq it needs to be patched in one small place in the code to make it suitable for CUT&RUN analysis. Otherwise, we estimate that the cut frequency is sometime off by 1 bp in its calculation.
+
+We provide a patch for this problem. Install the patched version of the package by reading [`atactk.install.sh`](atactk.install.sh). The patches [`make_cut_matrix.patch`](make_cut_matrix.patch) and [`metrics.py.patch`](metrics.py.patch). Then install by:
+
+```
+source atactk.install.sh
+```
+This will use pip to install atactk to the user's home directory (~/.local/bin).
+
+
+### UCSC-tools
+
+We need two specific tools bedGraph2BigWig and fetchChromSizes, and provide a script [`ucsc-tools.install`](ucsc-tools.install) to automatically download and install them from the UCSC genome browser:
+```
+source ucsc-tools.install
+```
+This will download the two executables in the current directory.
+
+
 ### A note about Anaconda
 
-If you are a conda/bioconda user, you can already obtain the pre-requisite softwares above from the bioconda package repository:
+If you are a conda/bioconda user, you can already obtain the pre-requisite softwares above from the bioconda package repository. On a linux system, the anaconda environment might look like the following:
 
 ```
 conda info -e
@@ -51,30 +74,8 @@ If you are using Ubuntu Linux 18.04 or above, obtaining and installing the pre-r
 You can either use the `apt-get install` command to install things like `bedops`, `bedtools`, `bowtie2`. For other packages that are not in the Ubuntu package manager, 
 they can be installed by going to the official channel, downloading the source tar file, extracting it, and doing `./configure --prefix=/usr/local` followed by `make && make install`.
 
-On my system, which is the Harvard Medical School O2 Computing Cluster, these pre-requisites have been pre-installed (see `module spider`), so there is no need to worry about them
+On my system, which is the Harvard Medical School O2 Computing Cluster, these pre-requisites have been installed by the system admin (see `module spider` on O2), so there is no need to worry about them
 if you are a user from the HMS community.
-
-
-### Atactk
-
-This is a [python2 package](https://github.com/ParkerLab/atactk) that determines the enzyme cut frequency matrix. Originally for Tn5 transposase in ATAC-seq, the logic of the tool also applies to other digestions like CUT&RUN. 
-However since original implementation is designed for ATAC-seq it needs to be patched in one small place in the code to make it suitable for CUT&RUN analysis. Otherwise, we estimate that the cut frequency is sometime off by 1 bp in its calculation.
-
-We provide a patch for this problem. Install the patched version of the package by reading [`atactk.install.sh`](atactk.install.sh). The patches [`make_cut_matrix.patch`](make_cut_matrix.patch) and [`metrics.py.patch`](metrics.py.patch). Then install by:
-
-```
-source atactk.install.sh
-```
-This will use pip to install atactk to the user's home directory (~/.local/bin).
-
-
-### UCSC-tools
-
-We need two specific tools bedGraph2BigWig and fetchChromSizes, and provide a script [`ucsc-tools.install`](ucsc-tools.install) to automatically download and install them from the UCSC genome browser:
-```
-source ucsc-tools.install
-```
-This will download the two executables in the current directory.
 
 
 ## Configuration file
