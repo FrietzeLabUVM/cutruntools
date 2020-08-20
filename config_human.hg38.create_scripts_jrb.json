@@ -18,14 +18,14 @@
     "bedtoolsbin": "/slipstream/home/joeboyd/anaconda2/bin",    
     "makecutmatrixbin": "/slipstream/home/joeboyd/.local/bin", 
     "bt2idx": "/slipstream/home/joeboyd/cutruntools/bowtie2_indexes", 
-    "genome_sequence": "/slipstream/home/joeboyd/cutruntools/assemblies/chrom.mm10/mm10.fa", 
+    "genome_sequence": "/slipstream/home/joeboyd/cutruntools/assemblies/chrom.hg38/hg38.fa", 
     "extratoolsbin": "/slipstream/home/joeboyd/cutruntools", 
     "extrasettings": "/slipstream/home/joeboyd/cutruntools", 
     "input/output": {
-        "fastq_directory": "/slipstream/home/joeboyd/cutruntools/input_fastqs", 
-        "workdir": "/slipstream/home/joeboyd/cutruntools/workdir", 
-        "fastq_sequence_length": 85, 
-        "organism_build": "mm10"
+        "fastq_directory": "/slipstream/home/joeboyd/cutruntools/input_fastqs_human", 
+        "workdir": "/slipstream/home/joeboyd/cutruntools/workdir_human.create_scripts_jrb", 
+        "fastq_sequence_length": 25, 
+        "organism_build": "hg38"
     }, 
     "motif_finding": {
         "num_bp_from_summit": 150, 

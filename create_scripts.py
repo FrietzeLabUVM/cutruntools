@@ -25,18 +25,10 @@ def generate_integrated_sh(config, output=None):
 		outp = fw
 		
 	header = """#!/bin/bash
-#SBATCH -n 1                               # Request one core
-#SBATCH -N 1                               # Request one node (if you request more than one core with -n, also using
-                                           # -N 1 means all cores will be on the same node)
-#SBATCH -t %s                         # Runtime in D-HH:MM format
-#SBATCH -p %s                           # Partition to run in
-#SBATCH --mem=%d                        # Memory total in MB (for all cores)
-#SBATCH -o hostname_%%j.out                 # File to which STDOUT will be written, including job ID
-#SBATCH -e hostname_%%j.err                 # File to which STDERR will be written, including job ID
-#SBATCH --mail-type=ALL                    # Type of email notification- BEGIN,END,FAIL,ALL
-#SBATCH --mail-user=%s   # Email to which notifications will be sent
-""" % (config["cluster"]["step_alignment"]["time_limit"], config["cluster"]["step_alignment"]["queue"], 
-	config["cluster"]["step_alignment"]["memory"], config["cluster"]["email"])
+#$ -pe threads 8
+#$ -cwd
+#$ -N cnr_align
+""" 
 
 	path="""trimmomaticbin=%s
 trimmomaticjarfile=%s
@@ -85,7 +77,7 @@ done
 #good version
 >&2 echo "Trimming file $base ..."
 >&2 date
-$javabin/java -jar $trimmomaticbin/$trimmomaticjarfile PE -threads 1 -phred33 $dirname/"$base"_R1_001.fastq.gz $dirname/"$base"_R2_001.fastq.gz $trimdir/"$base"_1.paired.fastq.gz $trimdir/"$base"_1.unpaired.fastq.gz $trimdir/"$base"_2.paired.fastq.gz $trimdir/"$base"_2.unpaired.fastq.gz ILLUMINACLIP:$adapterpath/Truseq3.PE.fa:2:15:4:4:true LEADING:20 TRAILING:20 SLIDINGWINDOW:4:15 MINLEN:25
+$javabin/java -jar $trimmomaticbin/$trimmomaticjarfile PE -threads 8 -phred33 $dirname/"$base"_R1_001.fastq.gz $dirname/"$base"_R2_001.fastq.gz $trimdir/"$base"_1.paired.fastq.gz $trimdir/"$base"_1.unpaired.fastq.gz $trimdir/"$base"_2.paired.fastq.gz $trimdir/"$base"_2.unpaired.fastq.gz ILLUMINACLIP:$adapterpath/Truseq3.PE.fa:2:15:4:4:true LEADING:20 TRAILING:20 SLIDINGWINDOW:4:15 MINLEN:25
 
 >&2 echo "Second stage trimming $base ..."
 >&2 date
@@ -94,7 +86,7 @@ $kseqbin/kseq_test $trimdir/"$base"_2.paired.fastq.gz $len $trimdir2/"$base"_2.p
 
 >&2 echo "Aligning file $base ..."
 >&2 date
-($bowtie2bin/bowtie2 -p 2 --dovetail --phred33 -x $bt2idx/%s -1 $trimdir2/"$base"_1.paired.fastq.gz -2 $trimdir2/"$base"_2.paired.fastq.gz) 2> $logdir/"$base".bowtie2 | $samtoolsbin/samtools view -bS - > $aligndir/"$base"_aligned_reads.bam
+($bowtie2bin/bowtie2 -p 8 --dovetail --phred33 -x $bt2idx/%s -1 $trimdir2/"$base"_1.paired.fastq.gz -2 $trimdir2/"$base"_2.paired.fastq.gz) 2> $logdir/"$base".bowtie2 | $samtoolsbin/samtools view -bS -@ 8 - > $aligndir/"$base"_aligned_reads.bam
 
 >&2 echo "Finished"
 >&2 date
@@ -113,18 +105,9 @@ def generate_integrated_step2_sh(config, output=None):
 		outp = fw
 
 	header = """#!/bin/bash
-#SBATCH -n 1                               # Request one core
-#SBATCH -N 1                               # Request one node (if you request more than one core with -n, also using
-                                           # -N 1 means all cores will be on the same node)
-#SBATCH -t %s                         # Runtime in D-HH:MM format
-#SBATCH -p %s                           # Partition to run in
-#SBATCH --mem=%d                        # Memory total in MB (for all cores)
-#SBATCH -o hostname_%%j.out                 # File to which STDOUT will be written, including job ID
-#SBATCH -e hostname_%%j.err                 # File to which STDERR will be written, including job ID
-#SBATCH --mail-type=ALL                    # Type of email notification- BEGIN,END,FAIL,ALL
-#SBATCH --mail-user=%s   # Email to which notifications will be sent
-""" % (config["cluster"]["step_process_bam"]["time_limit"], config["cluster"]["step_process_bam"]["queue"], 
-	config["cluster"]["step_process_bam"]["memory"], config["cluster"]["email"])
+#$ -N cnr_filter
+#$ -cwd
+""" 
 
 	p_pythonbase = config["pythonbin"].rstrip("/").rstrip("/bin")
 
@@ -150,6 +133,7 @@ ldlibrary=`echo $LD_LIBRARY_PATH | tr : "\\n" | grep -v $pythonldlibrary | paste
 unset LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$pythonldlibrary:$ldlibrary
 
+qsub_cmd="qsub -N cmd -b y -shell y -cwd -v TMP_DIR=$TMP_DIR"
 """ % (config["Rscriptbin"], config["pythonbin"], config["bedopsbin"], 
 	config["picardbin"], config["picardjarfile"], config["samtoolsbin"], 
 	config["macs2bin"], config["javabin"],
@@ -247,38 +231,56 @@ mkdir $d
 fi
 done
 
-$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir -q 0.01 -B --SPMR --keep-dup all 2> $logdir/"$base_file".macs2
-$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir2 -q 0.01 -B --SPMR 2> $logdir/"$base_file".dedup.macs2
+cmd_1="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir -q 0.01 -B --SPMR --keep-dup all 2> $logdir/"$base_file".macs2; cd $outdir;\
+LC_ALL=C sort -k1,1 -k2,2n $outdir/"$base_file"_treat_pileup.bdg > $outdir/"$base_file".sort.bdg;\
+$extratoolsbin/bedGraphToBigWig $outdir/"$base_file".sort.bdg $chromsizedir/hg38.chrom.sizes $outdir/"$base_file".sorted.bw;\
+rm -rf $outdir/"$base_file".sort.bdg;"
+$qsub_cmd $cmd_1
+
+cmd_2="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir2 -q 0.01 -B --SPMR 2> $logdir/"$base_file".dedup.macs2;\
+LC_ALL=C sort -k1,1 -k2,2n $outdir2/"$base_file"_treat_pileup.bdg > $outdir2/"$base_file".sort.bdg;\
+$extratoolsbin/bedGraphToBigWig $outdir2/"$base_file".sort.bdg $chromsizedir/hg38.chrom.sizes $outdir2/"$base_file".sorted.bw;\
+rm -rf $outdir2/"$base_file".sort.bdg;"
+$qsub_cmd $cmd_2
 
 #broad peak calls
-$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirbroad --broad --broad-cutoff 0.1 -B --SPMR --keep-dup all 2> $logdir/"$base_file".broad.all.frag.macs2
-$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirbroad2 --broad --broad-cutoff 0.1 -B --SPMR 2> $logdir/"$base_file".broad.all.frag.dedup.macs2
-$pythonbin/python $extratoolsbin/get_summits_broadPeak.py $outdirbroad/"$base_file"_peaks.broadPeak|$bedopsbin/sort-bed - > $outdirbroad/"$base_file"_summits.bed
-$pythonbin/python $extratoolsbin/get_summits_broadPeak.py $outdirbroad2/"$base_file"_peaks.broadPeak|$bedopsbin/sort-bed - > $outdirbroad2/"$base_file"_summits.bed
+cmd_3="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirbroad --broad --broad-cutoff 0.1 -B --SPMR --keep-dup all 2> $logdir/"$base_file".broad.all.frag.macs2;\
+$pythonbin/python $extratoolsbin/get_summits_broadPeak.py $outdirbroad/"$base_file"_peaks.broadPeak|$bedopsbin/sort-bed - > $outdirbroad/"$base_file"_summits.bed;"
+$qsub_cmd $cmd_3
+
+cmd_4="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirbroad2 --broad --broad-cutoff 0.1 -B --SPMR 2> $logdir/"$base_file".broad.all.frag.dedup.macs2;\
+$pythonbin/python $extratoolsbin/get_summits_broadPeak.py $outdirbroad2/"$base_file"_peaks.broadPeak|$bedopsbin/sort-bed - > $outdirbroad2/"$base_file"_summits.bed;"
+$qsub_cmd $cmd_4
+
 
 #SEACR peak calls
-$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirseac -q 0.01 -B --keep-dup all
-$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirseac2 -q 0.01 -B
-$pythonbin/python $extratoolsbin/change.bdg.py $outdirseac/"$base_file"_treat_pileup.bdg > $outdirseac/"$base_file"_treat_integer.bdg
-$pythonbin/python $extratoolsbin/change.bdg.py $outdirseac2/"$base_file"_treat_pileup.bdg > $outdirseac2/"$base_file"_treat_integer.bdg
-$extratoolsbin/SEACR_1.1.sh $outdirseac/"$base_file"_treat_integer.bdg 0.01 non stringent $outdirseac/"$base_file"_treat $Rscriptbin
-$extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non stringent $outdirseac2/"$base_file"_treat $Rscriptbin
-$bedopsbin/sort-bed $outdirseac/"$base_file"_treat.stringent.bed > $outdirseac/"$base_file"_treat.stringent.sort.bed
-$bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.stringent.bed > $outdirseac2/"$base_file"_treat.stringent.sort.bed
-$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac/"$base_file"_treat.stringent.bed|$bedopsbin/sort-bed - > $outdirseac/"$base_file"_treat.stringent.sort.summits.bed
-$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.stringent.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.stringent.sort.summits.bed
-for i in _summits.bed _peaks.xls _peaks.narrowPeak _control_lambda.bdg _treat_pileup.bdg; do 
-rm -rf $outdirseac/"$base_file"$i
-rm -rf $outdirseac2/"$base_file"$i
-done
+cmd_5="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirseac -q 0.01 -B --keep-dup all 2> $logdir/"$base_file".seacr.macs2;\
+$pythonbin/python $extratoolsbin/change.bdg.py $outdirseac/"$base_file"_treat_pileup.bdg > $outdirseac/"$base_file"_treat_integer.bdg;\
+$extratoolsbin/SEACR_1.1.sh $outdirseac/"$base_file"_treat_integer.bdg 0.01 non stringent $outdirseac/"$base_file"_treat $Rscriptbin;\
+$bedopsbin/sort-bed $outdirseac/"$base_file"_treat.stringent.bed > $outdirseac/"$base_file"_treat.stringent.sort.bed;\
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac/"$base_file"_treat.stringent.bed|$bedopsbin/sort-bed - > $outdirseac/"$base_file"_treat.stringent.sort.summits.bed;\
+for i in _summits.bed _peaks.xls _peaks.narrowPeak _control_lambda.bdg _treat_pileup.bdg;\
+do rm -rf $outdirseac/"$base_file"\$i;\
+done;\
+#SEACR relaxed peak calls;\
+$extratoolsbin/SEACR_1.1.sh $outdirseac/"$base_file"_treat_integer.bdg 0.01 non relaxed $outdirseac/"$base_file"_treat $Rscriptbin;\
+$bedopsbin/sort-bed $outdirseac/"$base_file"_treat.relaxed.bed > $outdirseac/"$base_file"_treat.relaxed.sort.bed;\
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac/"$base_file"_treat.relaxed.sort.summits.bed;"
+$qsub_cmd $cmd_5
 
-#SEACR relaxed peak calls
-$extratoolsbin/SEACR_1.1.sh $outdirseac/"$base_file"_treat_integer.bdg 0.01 non relaxed $outdirseac/"$base_file"_treat $Rscriptbin
-$extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non relaxed $outdirseac2/"$base_file"_treat $Rscriptbin
-$bedopsbin/sort-bed $outdirseac/"$base_file"_treat.relaxed.bed > $outdirseac/"$base_file"_treat.relaxed.sort.bed
-$bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.relaxed.bed > $outdirseac2/"$base_file"_treat.relaxed.sort.bed
-$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac/"$base_file"_treat.relaxed.sort.summits.bed
-$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.relaxed.sort.summits.bed
+cmd_6="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirseac2 -q 0.01 -B 2> $logdir/"$base_file".seacr.dedup.macs2;\
+$pythonbin/python $extratoolsbin/change.bdg.py $outdirseac2/"$base_file"_treat_pileup.bdg > $outdirseac2/"$base_file"_treat_integer.bdg;\
+$extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non stringent $outdirseac2/"$base_file"_treat $Rscriptbin;\
+$bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.stringent.bed > $outdirseac2/"$base_file"_treat.stringent.sort.bed;\
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.stringent.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.stringent.sort.summits.bed;\
+for i in _summits.bed _peaks.xls _peaks.narrowPeak _control_lambda.bdg _treat_pileup.bdg;\
+do rm -rf $outdirseac2/"$base_file"\$i;\
+done;\
+#SEACR relaxed peak calls;\
+$extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non relaxed $outdirseac2/"$base_file"_treat $Rscriptbin;\
+$bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.relaxed.bed > $outdirseac2/"$base_file"_treat.relaxed.sort.bed;\
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.relaxed.sort.summits.bed;"
+$qsub_cmd $cmd_6
 """ % (macs2_org, macs2_org, macs2_org, macs2_org, macs2_org, macs2_org)
 
 	scripts2 = """
@@ -321,37 +323,56 @@ mkdir $d
 fi
 done
 
-$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir -q 0.01 -B --SPMR --keep-dup all 2> $logdir/"$base_file".macs2
-$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir2 -q 0.01 -B --SPMR 2> $logdir/"$base_file".dedup.macs2
+
+cmd_1="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir -q 0.01 -B --SPMR --keep-dup all 2> $logdir/"$base_file".macs2; cd $outdir;\
+LC_ALL=C sort -k1,1 -k2,2n $outdir/"$base_file"_treat_pileup.bdg > $outdir/"$base_file".sort.bdg;\
+$extratoolsbin/bedGraphToBigWig $outdir/"$base_file".sort.bdg $chromsizedir/hg38.chrom.sizes $outdir/"$base_file".sorted.bw;\
+rm -rf $outdir/"$base_file".sort.bdg;"
+$qsub_cmd $cmd_1
+
+cmd_2="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir2 -q 0.01 -B --SPMR 2> $logdir/"$base_file".dedup.macs2;\
+LC_ALL=C sort -k1,1 -k2,2n $outdir2/"$base_file"_treat_pileup.bdg > $outdir2/"$base_file".sort.bdg;\
+$extratoolsbin/bedGraphToBigWig $outdir2/"$base_file".sort.bdg $chromsizedir/hg38.chrom.sizes $outdir2/"$base_file".sorted.bw;\
+rm -rf $outdir2/"$base_file".sort.bdg;"
+$qsub_cmd $cmd_2
 
 #broad peak calls
-$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirbroad --broad --broad-cutoff 0.1 -B --keep-dup all 2> $logdir/"$base_file".broad.all.frag.macs2
-$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirbroad2 --broad --broad-cutoff 0.1 -B 2> $logdir/"$base_file".broad.all.frag.dedup.macs2
-$pythonbin/python $extratoolsbin/get_summits_broadPeak.py $outdirbroad/"$base_file"_peaks.broadPeak|$bedopsbin/sort-bed - > $outdirbroad/"$base_file"_summits.bed
-$pythonbin/python $extratoolsbin/get_summits_broadPeak.py $outdirbroad2/"$base_file"_peaks.broadPeak|$bedopsbin/sort-bed - > $outdirbroad2/"$base_file"_summits.bed
+cmd_3="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirbroad --broad --broad-cutoff 0.1 -B --SPMR --keep-dup all 2> $logdir/"$base_file".broad.all.frag.macs2;\
+$pythonbin/python $extratoolsbin/get_summits_broadPeak.py $outdirbroad/"$base_file"_peaks.broadPeak|$bedopsbin/sort-bed - > $outdirbroad/"$base_file"_summits.bed;"
+$qsub_cmd $cmd_3
 
-#SEACR peak calling
-$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirseac -q 0.01 -B --keep-dup all
-$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirseac2 -q 0.01 -B 
-$pythonbin/python $extratoolsbin/change.bdg.py $outdirseac/"$base_file"_treat_pileup.bdg > $outdirseac/"$base_file"_treat_integer.bdg
-$pythonbin/python $extratoolsbin/change.bdg.py $outdirseac2/"$base_file"_treat_pileup.bdg > $outdirseac2/"$base_file"_treat_integer.bdg
-$extratoolsbin/SEACR_1.1.sh $outdirseac/"$base_file"_treat_integer.bdg 0.01 non stringent $outdirseac/"$base_file"_treat $Rscriptbin
-$extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non stringent $outdirseac2/"$base_file"_treat $Rscriptbin
-$bedopsbin/sort-bed $outdirseac/"$base_file"_treat.stringent.bed > $outdirseac/"$base_file"_treat.stringent.sort.bed
-$bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.stringent.bed > $outdirseac2/"$base_file"_treat.stringent.sort.bed
-$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac/"$base_file"_treat.stringent.bed|$bedopsbin/sort-bed - > $outdirseac/"$base_file"_treat.stringent.sort.summits.bed
-$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.stringent.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.stringent.sort.summits.bed
-for i in _summits.bed _peaks.xls _peaks.narrowPeak _control_lambda.bdg _treat_pileup.bdg; do 
-rm -rf $outdirseac/"$base_file"$i
-rm -rf $outdirseac2/"$base_file"$i
-done
+cmd_4="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirbroad2 --broad --broad-cutoff 0.1 -B --SPMR 2> $logdir/"$base_file".broad.all.frag.dedup.macs2;\
+$pythonbin/python $extratoolsbin/get_summits_broadPeak.py $outdirbroad2/"$base_file"_peaks.broadPeak|$bedopsbin/sort-bed - > $outdirbroad2/"$base_file"_summits.bed;"
+$qsub_cmd $cmd_4
 
-$extratoolsbin/SEACR_1.1.sh $outdirseac/"$base_file"_treat_integer.bdg 0.01 non relaxed $outdirseac/"$base_file"_treat $Rscriptbin
-$extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non relaxed $outdirseac2/"$base_file"_treat $Rscriptbin
-$bedopsbin/sort-bed $outdirseac/"$base_file"_treat.relaxed.bed > $outdirseac/"$base_file"_treat.relaxed.sort.bed
-$bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.relaxed.bed > $outdirseac2/"$base_file"_treat.relaxed.sort.bed
-$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac/"$base_file"_treat.relaxed.sort.summits.bed
-$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.relaxed.sort.summits.bed
+#SEACR peak calls
+cmd_5="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirseac -q 0.01 -B --keep-dup all;\
+$pythonbin/python $extratoolsbin/change.bdg.py $outdirseac/"$base_file"_treat_pileup.bdg > $outdirseac/"$base_file"_treat_integer.bdg;\
+$extratoolsbin/SEACR_1.1.sh $outdirseac/"$base_file"_treat_integer.bdg 0.01 non stringent $outdirseac/"$base_file"_treat $Rscriptbin;\
+$bedopsbin/sort-bed $outdirseac/"$base_file"_treat.stringent.bed > $outdirseac/"$base_file"_treat.stringent.sort.bed;\
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac/"$base_file"_treat.stringent.bed|$bedopsbin/sort-bed - > $outdirseac/"$base_file"_treat.stringent.sort.summits.bed;\
+for i in _summits.bed _peaks.xls _peaks.narrowPeak _control_lambda.bdg _treat_pileup.bdg;\
+do rm -rf $outdirseac/"$base_file"\$i;\
+done;\
+#SEACR relaxed peak calls;\
+$extratoolsbin/SEACR_1.1.sh $outdirseac/"$base_file"_treat_integer.bdg 0.01 non relaxed $outdirseac/"$base_file"_treat $Rscriptbin;\
+$bedopsbin/sort-bed $outdirseac/"$base_file"_treat.relaxed.bed > $outdirseac/"$base_file"_treat.relaxed.sort.bed;\
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac/"$base_file"_treat.relaxed.sort.summits.bed;"
+$qsub_cmd $cmd_5
+
+cmd_6="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdirseac2 -q 0.01 -B;\
+$pythonbin/python $extratoolsbin/change.bdg.py $outdirseac2/"$base_file"_treat_pileup.bdg > $outdirseac2/"$base_file"_treat_integer.bdg;\
+$extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non stringent $outdirseac2/"$base_file"_treat $Rscriptbin;\
+$bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.stringent.bed > $outdirseac2/"$base_file"_treat.stringent.sort.bed;\
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.stringent.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.stringent.sort.summits.bed;\
+for i in _summits.bed _peaks.xls _peaks.narrowPeak _control_lambda.bdg _treat_pileup.bdg;\
+do rm -rf $outdirseac2/"$base_file"\$i;\
+done;\
+#SEACR relaxed peak calls;\
+$extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non relaxed $outdirseac2/"$base_file"_treat $Rscriptbin;\
+$bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.relaxed.bed > $outdirseac2/"$base_file"_treat.relaxed.sort.bed;\
+$pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.relaxed.sort.summits.bed;"
+$qsub_cmd $cmd_6
 """ % (macs2_org, macs2_org, macs2_org, macs2_org, macs2_org, macs2_org)
 
 	scripts2allfrag = """
@@ -394,18 +415,11 @@ def generate_integrated_motif_find_sh(config, output=None, peak="narrowPeak", is
 		outp = fw
 	
 	header = """#!/bin/bash
-#SBATCH -n 1                               # Request one core
-#SBATCH -N 1                               # Request one node (if you request more than one core with -n, also using
-                                           # -N 1 means all cores will be on the same node)
-#SBATCH -t %s                         # Runtime in D-HH:MM format
-#SBATCH -p %s                           # Partition to run in
-#SBATCH --mem=%s                        # Memory total in MB (for all cores)
-#SBATCH -o hostname_%%j.out                 # File to which STDOUT will be written, including job ID
-#SBATCH -e hostname_%%j.err                 # File to which STDERR will be written, including job ID
-#SBATCH --mail-type=ALL                    # Type of email notification- BEGIN,END,FAIL,ALL
-#SBATCH --mail-user=%s   # Email to which notifications will be sent
-""" % (config["cluster"]["step_motif_find"]["time_limit"], config["cluster"]["step_motif_find"]["queue"], 
-	config["cluster"]["step_motif_find"]["memory"], config["cluster"]["email"])
+#$ -q slipstream_queue@cn-t630
+#$ -N cutnrun_meme
+#$ -pe threads 8
+# for now, this has to be run on slipstream_queue@cn-t630 due to meme-chip parallel missing lib on 620
+""" 
 	
 	scripts = """memebin=%s
 bedopsbin=%s
@@ -480,7 +494,7 @@ $bedtoolsbin/bedtools getfasta -fi $genome_sequence -bed $mpadded/$summit -fo $m
 
 >&2 echo "Start MEME analysis for de novo motif finding..."
 meme_outdir=$motif_dir/MEME_"$fname"_shuf
-$memebin/meme-chip -oc $meme_outdir -dreme-m %d -meme-nmotifs %d $mpaddedfa/$summitfa
+$memebin/meme-chip -meme-p 8 -oc $meme_outdir -dreme-m %d -meme-nmotifs %d $mpaddedfa/$summitfa
 
 >&2 echo "Finished"
 """ % (config["motif_finding"]["num_peaks"], config["motif_finding"]["num_peaks"], 
@@ -512,18 +526,10 @@ def generate_integrated_footprinting_sh(config, dedup=False, output=None, is_all
 		suffix="_treat.stringent.sort.bed"
 
 	header = """#!/bin/bash
-#SBATCH -n 1                               # Request one core
-#SBATCH -N 1                               # Request one node (if you request more than one core with -n, also using
-                                           # -N 1 means all cores will be on the same node)
-#SBATCH -t %s                         # Runtime in D-HH:MM format
-#SBATCH -p %s                           # Partition to run in
-#SBATCH --mem=%s                        # Memory total in MB (for all cores)
-#SBATCH -o hostname_%%j.out                 # File to which STDOUT will be written, including job ID
-#SBATCH -e hostname_%%j.err                 # File to which STDERR will be written, including job ID
-#SBATCH --mail-type=ALL                    # Type of email notification- BEGIN,END,FAIL,ALL
-#SBATCH --mail-user=%s   # Email to which notifications will be sent
-""" % (config["cluster"]["step_footprinting"]["time_limit"], config["cluster"]["step_footprinting"]["queue"], 
-	config["cluster"]["step_footprinting"]["memory"], config["cluster"]["email"])
+#$ -q slipstream_queue@cn-t630
+#$ -N cnr_foot
+#$ -cwd
+""" 
 
 	scripts = """
 pythonbin=%s
