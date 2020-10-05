@@ -133,7 +133,7 @@ ldlibrary=`echo $LD_LIBRARY_PATH | tr : "\\n" | grep -v $pythonldlibrary | paste
 unset LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$pythonldlibrary:$ldlibrary
 
-qsub_cmd="qsub -N cmd -b y -shell y -cwd -v TMP_DIR=$TMP_DIR"
+qsub_cmd="qsub -N cnr_peaks -b y -shell y -cwd -v TMP_DIR=$TMP"
 """ % (config["Rscriptbin"], config["pythonbin"], config["bedopsbin"], 
 	config["picardbin"], config["picardjarfile"], config["samtoolsbin"], 
 	config["macs2bin"], config["javabin"],
@@ -167,13 +167,13 @@ $samtoolsbin/samtools view -bh -f 3 -F 4 -F 8 $dirname/"$base".bam > sorted/"$ba
 >&2 echo "Sorting BAM... ""$base".bam
 >&2 date
 $javabin/java -jar $picardbin/$picardjarfile SortSam \
-INPUT=sorted/"$base".step1.bam OUTPUT=sorted/"$base".bam SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT
+INPUT=sorted/"$base".step1.bam OUTPUT=sorted/"$base".bam SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT TMP_DIR=$TMP
 rm -rf sorted/"$base".step1.bam
 
 >&2 echo "Marking duplicates... ""$base".bam
 >&2 date
 $javabin/java -jar $picardbin/$picardjarfile MarkDuplicates \
-INPUT=sorted/"$base".bam OUTPUT=dup.marked/"$base".bam VALIDATION_STRINGENCY=SILENT \
+INPUT=sorted/"$base".bam OUTPUT=dup.marked/"$base".bam VALIDATION_STRINGENCY=SILENT TMP_DIR=$TMP
 METRICS_FILE=metrics."$base".txt
 
 >&2 echo "Removing duplicates... ""$base".bam
@@ -211,7 +211,7 @@ base_file=`basename $bam_file .bam`
 	if config["input/output"]["organism_build"]=="hg19" or \
 	config["input/output"]["organism_build"]=="hg38":
 		macs2_org = "hs"
-	elif config["input/output"]["organism_build"]=="mm10" or \
+	elif config["input/output"]["organism_build"]=="" or \
 	config["input/output"]["organism_build"]=="mm9":
 		macs2_org = "mm"
 
@@ -233,13 +233,13 @@ done
 
 cmd_1="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir -q 0.01 -B --SPMR --keep-dup all 2> $logdir/"$base_file".macs2; cd $outdir;\
 LC_ALL=C sort -k1,1 -k2,2n $outdir/"$base_file"_treat_pileup.bdg > $outdir/"$base_file".sort.bdg;\
-$extratoolsbin/bedGraphToBigWig $outdir/"$base_file".sort.bdg $chromsizedir/hg38.chrom.sizes $outdir/"$base_file".sorted.bw;\
+$extratoolsbin/bedGraphToBigWig $outdir/"$base_file".sort.bdg $chromsizedir/%s.chrom.sizes $outdir/"$base_file".sorted.bw;\
 rm -rf $outdir/"$base_file".sort.bdg;"
 $qsub_cmd $cmd_1
 
 cmd_2="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir2 -q 0.01 -B --SPMR 2> $logdir/"$base_file".dedup.macs2;\
 LC_ALL=C sort -k1,1 -k2,2n $outdir2/"$base_file"_treat_pileup.bdg > $outdir2/"$base_file".sort.bdg;\
-$extratoolsbin/bedGraphToBigWig $outdir2/"$base_file".sort.bdg $chromsizedir/hg38.chrom.sizes $outdir2/"$base_file".sorted.bw;\
+$extratoolsbin/bedGraphToBigWig $outdir2/"$base_file".sort.bdg $chromsizedir/%s.chrom.sizes $outdir2/"$base_file".sorted.bw;\
 rm -rf $outdir2/"$base_file".sort.bdg;"
 $qsub_cmd $cmd_2
 
@@ -281,26 +281,12 @@ $extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non
 $bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.relaxed.bed > $outdirseac2/"$base_file"_treat.relaxed.sort.bed;\
 $pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.relaxed.sort.summits.bed;"
 $qsub_cmd $cmd_6
-""" % (macs2_org, macs2_org, macs2_org, macs2_org, macs2_org, macs2_org)
+""" % (macs2_org, config["input/output"]["organism_build"], macs2_org, config["input/output"]["organism_build"], macs2_org, macs2_org, macs2_org, macs2_org)
 
-	scripts2 = """
-cur=`pwd`
->&2 echo "Converting bedgraph to bigwig... ""$base".bam
->&2 date
-cd $outdir
-LC_ALL=C sort -k1,1 -k2,2n $outdir/"$base_file"_treat_pileup.bdg > $outdir/"$base_file".sort.bdg
-$extratoolsbin/bedGraphToBigWig $outdir/"$base_file".sort.bdg $chromsizedir/%s.chrom.sizes $outdir/"$base_file".sorted.bw
-rm -rf "$base_file".sort.bdg
-
-cd $outdir2
-LC_ALL=C sort -k1,1 -k2,2n $outdir2/"$base_file"_treat_pileup.bdg > $outdir2/"$base_file".sort.bdg
-$extratoolsbin/bedGraphToBigWig $outdir2/"$base_file".sort.bdg $chromsizedir/%s.chrom.sizes $outdir2/"$base_file".sorted.bw
-rm -rf "$base_file".sort.bdg
-""" % (config["input/output"]["organism_build"], config["input/output"]["organism_build"])
 
 
 	scriptallfrag = """#====================================================================================================================================
-
+cur=`pwd`
 #all fragments
 cd $cur
 bam_file=dup.marked/"$base".bam
@@ -326,13 +312,13 @@ done
 
 cmd_1="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir -q 0.01 -B --SPMR --keep-dup all 2> $logdir/"$base_file".macs2; cd $outdir;\
 LC_ALL=C sort -k1,1 -k2,2n $outdir/"$base_file"_treat_pileup.bdg > $outdir/"$base_file".sort.bdg;\
-$extratoolsbin/bedGraphToBigWig $outdir/"$base_file".sort.bdg $chromsizedir/hg38.chrom.sizes $outdir/"$base_file".sorted.bw;\
+$extratoolsbin/bedGraphToBigWig $outdir/"$base_file".sort.bdg $chromsizedir/%s.chrom.sizes $outdir/"$base_file".sorted.bw;\
 rm -rf $outdir/"$base_file".sort.bdg;"
 $qsub_cmd $cmd_1
 
 cmd_2="$macs2bin/macs2 callpeak -t $workdir/$dir/"$base_file".bam -g %s -f BAMPE -n $base_file --outdir $outdir2 -q 0.01 -B --SPMR 2> $logdir/"$base_file".dedup.macs2;\
 LC_ALL=C sort -k1,1 -k2,2n $outdir2/"$base_file"_treat_pileup.bdg > $outdir2/"$base_file".sort.bdg;\
-$extratoolsbin/bedGraphToBigWig $outdir2/"$base_file".sort.bdg $chromsizedir/hg38.chrom.sizes $outdir2/"$base_file".sorted.bw;\
+$extratoolsbin/bedGraphToBigWig $outdir2/"$base_file".sort.bdg $chromsizedir/%s.chrom.sizes $outdir2/"$base_file".sorted.bw;\
 rm -rf $outdir2/"$base_file".sort.bdg;"
 $qsub_cmd $cmd_2
 
@@ -373,21 +359,8 @@ $extratoolsbin/SEACR_1.1.sh $outdirseac2/"$base_file"_treat_integer.bdg 0.01 non
 $bedopsbin/sort-bed $outdirseac2/"$base_file"_treat.relaxed.bed > $outdirseac2/"$base_file"_treat.relaxed.sort.bed;\
 $pythonbin/python $extratoolsbin/get_summits_seacr.py $outdirseac2/"$base_file"_treat.relaxed.bed|$bedopsbin/sort-bed - > $outdirseac2/"$base_file"_treat.relaxed.sort.summits.bed;"
 $qsub_cmd $cmd_6
-""" % (macs2_org, macs2_org, macs2_org, macs2_org, macs2_org, macs2_org)
+""" % (macs2_org, config["input/output"]["organism_build"], macs2_org, config["input/output"]["organism_build"], macs2_org, macs2_org, macs2_org, macs2_org)
 
-	scripts2allfrag = """
->&2 echo "Converting bedgraph to bigwig... ""$base".bam
->&2 date
-cd $outdir
-LC_ALL=C sort -k1,1 -k2,2n $outdir/"$base_file"_treat_pileup.bdg > $outdir/"$base_file".sort.bdg
-$extratoolsbin/bedGraphToBigWig $outdir/"$base_file".sort.bdg $chromsizedir/%s.chrom.sizes $outdir/"$base_file".sorted.bw
-rm -rf "$base_file".sort.bdg
-
-cd $outdir2
-LC_ALL=C sort -k1,1 -k2,2n $outdir2/"$base_file"_treat_pileup.bdg > $outdir2/"$base_file".sort.bdg
-$extratoolsbin/bedGraphToBigWig $outdir2/"$base_file".sort.bdg $chromsizedir/%s.chrom.sizes $outdir2/"$base_file".sorted.bw
-rm -rf "$base_file".sort.bdg
-""" % (config["input/output"]["organism_build"], config["input/output"]["organism_build"])
 
 
 	scriptfinal = """
@@ -399,9 +372,9 @@ rm -rf "$base_file".sort.bdg
 	outp.write(path + "\n")
 	outp.write(scripts + "\n")
 	outp.write(macs_script + "\n")
-	outp.write(scripts2 + "\n")
+	#outp.write(scripts2 + "\n")
 	outp.write(scriptallfrag + "\n")
-	outp.write(scripts2allfrag + "\n")
+	#outp.write(scripts2allfrag + "\n")
 	outp.write(scriptfinal + "\n")
 
 
@@ -416,7 +389,7 @@ def generate_integrated_motif_find_sh(config, output=None, peak="narrowPeak", is
 	
 	header = """#!/bin/bash
 #$ -q slipstream_queue@cn-t630
-#$ -N cutnrun_meme
+#$ -N cnr_meme
 #$ -pe threads 8
 # for now, this has to be run on slipstream_queue@cn-t630 due to meme-chip parallel missing lib on 620
 """ 
