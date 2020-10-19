@@ -173,7 +173,7 @@ rm -rf sorted/"$base".step1.bam
 >&2 echo "Marking duplicates... ""$base".bam
 >&2 date
 $javabin/java -jar $picardbin/$picardjarfile MarkDuplicates \
-INPUT=sorted/"$base".bam OUTPUT=dup.marked/"$base".bam VALIDATION_STRINGENCY=SILENT TMP_DIR=$TMP
+INPUT=sorted/"$base".bam OUTPUT=dup.marked/"$base".bam VALIDATION_STRINGENCY=SILENT TMP_DIR=$TMP \
 METRICS_FILE=metrics."$base".txt
 
 >&2 echo "Removing duplicates... ""$base".bam
