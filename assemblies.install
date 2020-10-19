@@ -5,7 +5,7 @@
 url=http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/chromFaMasked.tar.gz
 #http://hgdownload.cse.ucsc.edu/goldenPath/mm9/bigZips/chromFaMasked.tar.gz
 #http://hgdownload.cse.ucsc.edu/goldenPath/mm10/bigZips/chromFaMasked.tar.gz
-bedtoolsbin=/n/app/bedtools/2.26.0/bin
+bedtoolsbin=/slipstream/home/joeboyd/anaconda2/bin
 
 cur=`pwd`
 mkdir assemblies/chrom.hg19
