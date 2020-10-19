@@ -1,3 +1,7 @@
+This version of CUT&RUNTools has been adapted to run on SGE and has enhanced parallelization.
+
+Please see this [google doc](https://docs.google.com/document/d/1aXxr30-jylcSUL6QFfyGy8nm7wTjY5q8ty7fe4X1eMs/edit?usp=sharing) for relevant running instructions on the Stein server.
+
 # CUT&RUNTools
 
 This package contains the pipeline for conducting a CUT&RUN analysis.
