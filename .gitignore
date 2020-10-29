@@ -1,0 +1,10 @@
+assemblies
+bedGraphToBigWig
+input_fastq*
+workdir*
+git
+tmp*
+bowtie2_indexes
+fetchChromSizes
+spikein/
+kseq_test

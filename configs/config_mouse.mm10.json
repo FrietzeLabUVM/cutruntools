@@ -1,0 +1,60 @@
+{
+    "Rscriptbin": "/slipstream/home/joeboyd/anaconda2/envs/r_3.3/bin", 
+    "pythonbin": "/slipstream/home/joeboyd/anaconda2/bin", 
+    "perlbin": "/usr/bin",
+    "javabin": "/slipstream/home/joeboyd/anaconda2/bin",
+    "trimmomaticbin": "/slipstream/home/joeboyd/anaconda2/share/trimmomatic-0.39-1", 
+    "trimmomaticjarfile": "trimmomatic.jar", 
+    "bowtie2bin": "/slipstream/home/joeboyd/anaconda2/bin", 
+    "samtoolsbin": "/slipstream/home/joeboyd/anaconda2/bin", 
+    "adapterpath": "/slipstream/home/joeboyd/cutruntools/adapters", 
+    "picardbin": "/slipstream/home/joeboyd/anaconda2/share/picard-2.23.3-0", 
+    "picardjarfile": "picard.jar", 
+    "macs2bin": "/slipstream/home/joeboyd/anaconda2/bin", 
+    "macs2pythonlib": "/slipstream/home/joeboyd/anaconda2/lib/python2.7/site-packages",
+    "kseqbin": "/slipstream/home/joeboyd/cutruntools", 
+    "memebin": "/slipstream/home/joeboyd/meme/bin", 
+    "bedopsbin": "/slipstream/home/joeboyd/anaconda2/bin",
+    "bedtoolsbin": "/slipstream/home/joeboyd/anaconda2/bin",    
+    "makecutmatrixbin": "/slipstream/home/joeboyd/.local/bin", 
+    "bt2idx": "/slipstream/home/joeboyd/cutruntools/bowtie2_indexes", 
+    "genome_sequence": "/slipstream/home/joeboyd/cutruntools/assemblies/chrom.mm10/mm10.fa", 
+    "extratoolsbin": "/slipstream/home/joeboyd/cutruntools", 
+    "extrasettings": "/slipstream/home/joeboyd/cutruntools", 
+    "input/output": {
+        "fastq_directory": "/slipstream/home/joeboyd/cutruntools/input_fastqs", 
+        "workdir": "/slipstream/home/joeboyd/cutruntools/workdir.mm10", 
+        "fastq_sequence_length": 85, 
+        "organism_build": "mm10"
+    }, 
+    "motif_finding": {
+        "num_bp_from_summit": 150, 
+        "num_peaks": 1000, 
+        "total_peaks": 5000, 
+        "motif_scanning_pval": 0.0005, 
+        "num_motifs": 10
+    }, 
+    "cluster": {
+        "email": "jrboyd@med.uvm.edu", 
+        "step_alignment": {
+            "queue": "short", 
+            "memory": 32000, 
+            "time_limit": "0-12:00"
+        }, 
+        "step_process_bam": {
+            "queue": "short", 
+            "memory": 32000, 
+            "time_limit": "0-12:00"
+        }, 
+        "step_motif_find": {
+            "queue": "short", 
+            "memory": 32000, 
+            "time_limit": "0-12:00"
+        }, 
+        "step_footprinting": {
+            "queue": "short", 
+            "memory": 32000, 
+            "time_limit": "0-12:00"
+        }
+    }
+}
