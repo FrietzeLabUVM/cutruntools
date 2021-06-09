@@ -27,65 +27,66 @@ When first starting an analysis, CUT&RUNTools requires a JSON configuration file
 
 ```json
 {
-	"Rscriptbin": "/n/app/R/3.3.3/bin",
-	"pythonbin": "/n/app/python/2.7.12/bin",
-	"perlbin": "/n/app/perl/5.24.0/bin",
-	"javabin": "/n/app/java/jdk-1.8u112/bin",
-	"trimmomaticbin": "/n/app/trimmomatic/0.36/bin",
-	"trimmomaticjarfile": "trimmomatic-0.36.jar",
-	"bowtie2bin": "/n/app/bowtie2/2.2.9/bin",
-	"samtoolsbin": "/n/app/samtools/1.3.1/bin",
-	"adapterpath": "/home/qz64/cutrun_pipeline/adapters", 
-	"picardbin": "/n/app/picard/2.8.0/bin",
-	"picardjarfile": "picard-2.8.0.jar",
-	"macs2bin": "/n/app/macs2/2.1.1.20160309/bin",
-	"macs2pythonlib": "/n/app/macs2/2.1.1.20160309/lib/python2.7/site-packages",
-	"kseqbin": "/home/qz64/cutrun_pipeline", 
-	"memebin": "/n/app/meme/4.12.0/bin", 
-	"bedopsbin": "/n/app/bedops/2.4.30", 
-	"bedtoolsbin": "/n/app/bedtools/2.26.0/bin",
-	"makecutmatrixbin": "/home/qz64/.local/bin",
-	"bt2idx": "/n/groups/shared_databases/bowtie2_indexes",
-	"genome_sequence": "/home/qz64/chrom.hg19/hg19.fa",
-	"extratoolsbin": "/home/qz64/cutrun_pipeline", 
-	"extrasettings": "/home/qz64/cutrun_pipeline", 
-	"input/output": {
-		"fastq_directory": "/n/scratch2/qz64/Nan_18_aug23/Nan_run_19",
-		"workdir": "/n/scratch2/qz64/workdir",
-		"fastq_sequence_length": 42,
-		"organism_build": "hg19"
-	},
-	"motif_finding": {
-		"num_bp_from_summit": 150,
-		"num_peaks": 5000,
-		"total_peaks": 15000,
-		"motif_scanning_pval": 0.0005,
-		"num_motifs": 20
-	},
-	"cluster": {
-		"email": "johndoe@gmail.com",
-		"step_alignment": {
-			"queue": "short",
-			"memory": 32000,
-			"time_limit": "0-12:00"
-		},
-		"step_process_bam": {
-			"queue": "short",
-			"memory": 32000,
-			"time_limit": "0-12:00"
-		},
-		"step_motif_find": {
-			"queue": "short",
-			"memory": 32000,
-			"time_limit": "0-12:00"
-		},
-		"step_footprinting": {
-			"queue": "short",
-			"memory": 32000,
-			"time_limit": "0-12:00"
-		}
-	}
+    "Rscriptbin": "/users/j/r/jrboyd/bin",
+    "pythonbin": "/users/j/r/jrboyd/anaconda3/envs/py2_env/bin",
+    "perlbin": "/users/j/r/jrboyd/anaconda3/bin",
+    "javabin": "/usr/bin",
+    "trimmomaticbin": "/users/j/r/jrboyd/tools/cutruntools_dep/Trimmomatic-0.36",
+    "trimmomaticjarfile": "trimmomatic-0.36.jar",
+    "bowtie2bin": "/users/j/r/jrboyd/tools/cutruntools_dep/bowtie2-2.2.9",
+    "samtoolsbin": "/users/j/r/jrboyd/tools/cutruntools_dep/samtools-1.3.1",
+    "adapterpath": "/users/j/r/jrboyd/tools/cutruntools/adapters",
+    "picardbin": "/users/j/r/jrboyd/tools/cutruntools_dep/picard-2.8.0",
+    "picardjarfile": "picard.jar",
+    "macs2bin": "/users/j/r/jrboyd/anaconda3/envs/py2_env/bin",
+    "macs2pythonlib": "/users/j/r/jrboyd/anaconda3/envs/py2_env/lib/python2.7/site-packages",
+    "kseqbin": "/users/j/r/jrboyd/tools/cutruntools",
+    "memebin": "/users/j/r/jrboyd/anaconda3/bin",
+    "bedopsbin": "/users/j/r/jrboyd/tools/cutruntools_dep/bedops_v2.4.39/bin",
+    "bedtoolsbin": "/users/j/r/jrboyd/bin/bedtools2-2.20.1/bin",
+    "makecutmatrixbin": "/users/j/r/jrboyd/.local/bin",
+    "bt2idx": "/users/j/r/jrboyd/tools/cutruntools/bowtie2_indexes",
+    "genome_sequence": "/users/j/r/jrboyd/data/hg38/seq/hg38canon.fa",
+    "extratoolsbin": "/users/j/r/jrboyd/tools/cutruntools",
+    "extrasettings": "/users/j/r/jrboyd/tools/cutruntools",
+    "input/output": {
+        "fastq_directory": "/users/j/r/jrboyd/pipelines/cutruntools/input_fastq_bcell_113020",
+        "workdir": "/users/j/r/jrboyd/pipelines/cutruntools/output_bcell_113020",
+        "fastq_sequence_length": 85,
+        "organism_build": "hg38"
+    },
+    "motif_finding": {
+        "num_bp_from_summit": 150,
+        "num_peaks": 1000,
+        "total_peaks": 5000,
+        "motif_scanning_pval": 0.0005,
+        "num_motifs": 10
+    },
+    "cluster": {
+        "email": "jrboyd@med.uvm.edu",
+        "step_alignment": {
+            "queue": "bluemoon",
+            "memory": 32000,
+            "time_limit": "0-12:00"
+        },
+        "step_process_bam": {
+            "queue": "bluemoon",
+            "memory": 32000,
+            "time_limit": "0-12:00"
+        },
+        "step_motif_find": {
+            "queue": "bluemoon",
+            "memory": 32000,
+            "time_limit": "0-12:00"
+        },
+        "step_footprinting": {
+            "queue": "bluemoon",
+            "memory": 32000,
+            "time_limit": "0-12:00"
+        }
+    }
 }
+
 ```
 The first 10-20 lines define the software paths for various sequencing tools. For each software, please note the directory to the binary executable (usually the `bin` directory, such as `/usr/bin`, `/usr/local/bin`, or sometimes it may depend on how softwares are installed on the cluster). For more information, refer to [INSTALL.md](INSTALL.md). 
 
